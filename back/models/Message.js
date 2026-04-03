@@ -1,16 +1,30 @@
-const express = require('express')
-const mongoose = require('mongoose')
+const mongoose = require("mongoose")
 
 const messageSchema = mongoose.Schema({
-    chatId: { type: mongoose.Schema.Types.ObjectId, ref: 'Chat', required: true },
+
+    conversationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Conversation', required: true },
     sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    receiver: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    edited: { type: Boolean, default: false },
-    deleted: { type: Boolean, default: false },
+
     content: { type: String },
-    attachments: { type: [Object] },
-    read: { type: Boolean, default: false },
+
+    type: {
+        type: String,
+        enum: ['text', 'image', 'file'],
+        default: 'text'
+    },
+
+    readBy: [{ 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'User' 
+    }],
+
+    isEdited: { type: Boolean, default: false },
+    isDeleted: { type: Boolean, default: false },
+
     createdAt: { type: Date, default: Date.now }
+
 }, { timestamps: true })
 
-module.exports = mongoose.model('Message', messageSchema)
+messageSchema.index({ conversationId: 1, createdAt: -1 })
+
+module.exports = mongoose.model("Message", messageSchema)
