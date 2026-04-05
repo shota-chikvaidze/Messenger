@@ -10,6 +10,8 @@ const userSchema = mongoose.Schema({
     loginAttempts: { type: Number, default: 0 },
     lockUntil: { type: Date },
 
+    lastSeen: { type: Date },
+
     createdAt: { type: Date, default: Date.now }
 })
 

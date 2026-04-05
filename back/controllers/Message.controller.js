@@ -1,6 +1,8 @@
 const Message = require('../models/Message')
 const Conversation = require('../models/Conversation')
 
+const { createMessage, editMessage, removeMessage } = require('../services/message.service')
+
 exports.getMessages = async (req, res) => {
     try{
 
@@ -40,7 +42,7 @@ exports.sendMessage = async (req, res) => {
             return res.status(404).json({message: 'Conversation not found'})
         }
 
-        const isSenderParticipant = conversation.participants.some(p => p.toSting === userId)
+        const isSenderParticipant = conversation.participants.some(p => p.toString() === userId)
         if(!isSenderParticipant){
             return res.status(403).json({message: 'You are not part of the chat'})
         }
@@ -49,12 +51,15 @@ exports.sendMessage = async (req, res) => {
             return res.status(400).json({message: 'text must be at least one simbol'})
         }
 
-        const message = await Message.create({
+        const message = await createMessage({
             conversationId,
-            sender: userId,
-            content,
-            type
+            type,
+            senderId: userId,
+            content
         })
+
+        const io = req.app.get('io')
+        io.to(conversationId).emit('new_message', message)
 
         res.status(201).json({message: 'message sent successfully', message})
 
@@ -81,10 +86,14 @@ exports.deleteMessage = async (req, res) => {
         }
 
         if(message.isDeleted === true){
-            return res.status(400).json({message: 'message already deleted'})
+            return res.status(400).json({message: 'message is already removed'})
         }
 
-        await Message.findByIdAndUpdate(messageId, { $set: { isDeleted: true } })
+        await removeMessage({
+            messageId
+        })
+
+        res.status(200).json({message: 'message removed'})
 
 
     }catch(err){
@@ -108,6 +117,16 @@ exports.markAsRead = async (req, res) => {
             return res.status(403).json({message: 'You are not part of the chat'})
         }
 
+        await Message.updateMany(
+            { 
+                conversationId, 
+                sender: { $ne: userId },
+                readBy: { $nin: [userId] }
+            },
+            { $addToSet: { readBy: userId } }
+        )
+        res.status(200).json({ message: 'messages marked as read' })
+
     }catch(err){
         res.status(500).json({message: 'Server error'})
     }
@@ -125,8 +144,7 @@ exports.editMessage = async (req, res) => {
             return res.status(404).json({message: 'message not found'})
         }
 
-        const sender = message.sender.some(text => text.toString === userId)
-        if(!sender){
+        if(message.sender.toString() !== userId){
             return res.status(403).json({message: 'only sender can edit this message'})
         }
 
@@ -138,10 +156,13 @@ exports.editMessage = async (req, res) => {
             return res.status(400).json({message: 'message must not be empty'})
         }
 
-        const updated = await findByIdAndUpdate(messageId, { $set: { isEdited: true } })
+        const updated = await editMessage({
+            messageId,
+            content
+        })
 
-        res.status(200).json({message: 'message updated successfully'})
-
+        res.status(200).json({message: 'message updated successfully', updated})
+        
     }catch(err){
         res.status(500).json({message: 'Server error'})
     }
