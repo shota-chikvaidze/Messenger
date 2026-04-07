@@ -11,7 +11,7 @@ exports.register = async (req, res) => {
             return res.status(400).json({message: 'all fields required'})
         }
 
-        const checkUser = await User.findOne(email)
+        const checkUser = await User.findOne({email})
         if(checkUser){
             return res.status(400).json({message: 'user already exists'})
         }
@@ -24,22 +24,22 @@ exports.register = async (req, res) => {
             password: hashedPassword
         })
 
-        const accessToken = jwt.sign({ id: createUser._id }, process.env.JWT, {
+        const accessToken = jwt.sign({ id: createUser._id }, process.env.JWT_SECRET, {
             expiresIn: "15m"
         })
 
-        const refreshToken = await RefreshToken.createToken(createUser._id)
+        // const refreshToken = await RefreshToken.createToken(createUser._id)
 
         
         const cookieOptions = {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-          maxAge: 7 * 24 * 60 * 60 * 1000,
-          path: '/',
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            path: '/',
         }
 
-        res.cookie('refreshToken', refreshToken, cookieOptions)
+        res.cookie('accessToken', accessToken, cookieOptions)
 
         res.status(201).json({
             message: "User registered successfully",
@@ -53,7 +53,7 @@ exports.register = async (req, res) => {
         })
 
     }catch(err){
-        res.status(500).json({message: 'Server error'})
+        res.status(500).json({message: 'Server error', error: err.message})
     }
 }
 
@@ -75,12 +75,12 @@ exports.login = async (req, res) => {
             return res.status(400).json({message: 'invalid credentials'})
         }
 
-        const accessToken = jwt.sign({ id: findUser._id }, process.env.JWT, {
+        const accessToken = jwt.sign({ id: findUser._id }, process.env.JWT_SECRET, {
             expiresIn: "15m"
         })
 
 
-        const refreshToken = await RefreshToken.createToken(findUser._id)
+        // const refreshToken = await RefreshToken.createToken(findUser._id)
 
         
         const cookieOptions = {
@@ -91,7 +91,7 @@ exports.login = async (req, res) => {
           path: '/',
         }
 
-        res.cookie('refreshToken', refreshToken, cookieOptions)
+        res.cookie('accessToken', accessToken, cookieOptions)
 
         res.status(201).json({
             message: "User registered successfully",
@@ -105,7 +105,7 @@ exports.login = async (req, res) => {
         })
 
     }catch(err){
-        res.status(500).json({message: 'Server error'})
+        res.status(500).json({message: 'Server error', error: err.message})
     }
 }
 
@@ -141,7 +141,7 @@ exports.refreshToken = async (req, res) => {
         // Generate new access token
         const accessToken = jwt.sign(
             { id: user._id }, 
-            process.env.JWT, 
+            process.env.JWT_SECRET, 
             { expiresIn: '15m' }
         )
 

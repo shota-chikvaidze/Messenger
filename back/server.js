@@ -1,18 +1,26 @@
 const express = require('express')
 const dotenv = require('dotenv')
+dotenv.config()
 const mongoose = require('mongoose')
+const cors = require('cors')
 
 const http = require('http')
 const { Server } = require('socket.io')
 
-dotenv.config()
 const app = express()
 const httpServer = http.createServer(app)
 const io = new Server(httpServer, {
     cors: {
-        origin: process.env.CLIENT_URL,
+        origin: process.env.CLIENT_URL || "http://localhost:5173",
     }
 })
+
+app.use(express.json())
+
+app.use(cors({
+  origin: process.env.CLIENT_URL || "http://localhost:5173",
+  credentials: true
+}))
 
 // make io accessible in controllers via req.app.get('io')
 app.set('io', io)
@@ -21,10 +29,24 @@ app.set('io', io)
 require('./socket')(io)  
 
 
+const authRoutes = require('./routes/Auth.routes')
+const messageRoutes = require('./routes/Message.routes')
+const conversationRoutes = require('./routes/Conversation.routes')
 
 
+app.use('/api/auth', authRoutes)
+app.use('/api/message', messageRoutes)
+app.use('/api/conversation', conversationRoutes)
 
-
+app.get('/health', (req, res) => {
+  const healthCheck = {
+    uptime: process.uptime(),
+    status: 'ok',
+    timeStamps: Date.now(),
+    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+  }
+  res.status(200).json(healthCheck)
+})
 
 
 const PORT = process.env.PORT || 5000
