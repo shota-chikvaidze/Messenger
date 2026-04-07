@@ -1,1 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Funnel+Sans:ital,wght@0,300..800;1,300..800&display=swap');
 @import "tailwindcss";
+
+:root {
+    --primary-color: #0095e5;
+    --primary-color-hover: #0082c8;
+}
+
+* {
+    font-family: "Funnel Sans", sans-serif;
+}

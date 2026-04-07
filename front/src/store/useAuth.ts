@@ -28,6 +28,7 @@ export const useAuth = create<AuthState>((set) => ({
             user,
             accessToken,
             isAuthenticated: true,
+            isInitialized: true
         })),
 
     updateAccessToken: (accessToken) =>
