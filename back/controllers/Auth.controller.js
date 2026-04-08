@@ -94,7 +94,7 @@ exports.login = async (req, res) => {
         res.cookie('accessToken', accessToken, cookieOptions)
 
         res.status(201).json({
-            message: "User registered successfully",
+            message: "User logged in successfully",
             success: true,
             accessToken,
             user: {

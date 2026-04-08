@@ -1,13 +1,23 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Register } from './pages/login/Register'
 import { Home } from './pages/home/Home'
-import { Profile } from './pages/profile/Profile'
+import { FindUsers } from './pages/findUsers/FindUsers'
+
+import { Toaster } from 'react-hot-toast'
+import { toastStyles } from './utils/toast'
 
 import { PrivateRoute } from './components/guards/AuthGuard'
+import { useInitAuth } from './hooks/useInitAuth'
+import { SidebarWrapper } from './components/sidebarWrapper/SidebarWrapper'
 
 function App() {
+  
+  useInitAuth()
+
   return (
     <>
+
+      <Toaster position="top-right" toastOptions={toastStyles} />
 
       <Routes>
         <Route path='/' element={ <Home /> } />
@@ -15,7 +25,12 @@ function App() {
 
 
         <Route element={ <PrivateRoute /> }>
-          <Route path='/profile' element={ <Profile /> } />
+          <Route element={ <SidebarWrapper /> } path='/' >
+            
+            <Route path='/find-friends' element={ <FindUsers /> } />
+            <Route index element={ <FindUsers /> } />
+
+          </Route>
         </Route>
 
         <Route path='*' element={ <Navigate to={'/'} /> } />

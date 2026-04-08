@@ -11,6 +11,12 @@ export interface RegisterPayload {
     password: string
 }
 
+export interface MeType {
+    id: string,
+    email: string,
+    username: string
+}
+
 export const LoginEndpoint = async (payload: LoginPayload) => {
     const res = await axios.post('/auth/login', payload)
     return res.data
@@ -18,5 +24,10 @@ export const LoginEndpoint = async (payload: LoginPayload) => {
 
 export const RegisterEndpoint = async (payload: RegisterPayload) => {
     const res = await axios.post('/auth/register', payload)
+    return res.data
+}
+
+export const MeEndpoint = async (): Promise<{ user: MeType }> => {
+    const res = await axios.get<{ user: MeType }>('/auth/me')
     return res.data
 }

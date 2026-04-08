@@ -3,6 +3,7 @@ const dotenv = require('dotenv')
 dotenv.config()
 const mongoose = require('mongoose')
 const cors = require('cors')
+const cookieParser = require('cookie-parser')
 
 const http = require('http')
 const { Server } = require('socket.io')
@@ -21,22 +22,25 @@ app.use(cors({
   origin: process.env.CLIENT_URL || "http://localhost:5173",
   credentials: true
 }))
+app.use(cookieParser())
 
 // make io accessible in controllers via req.app.get('io')
 app.set('io', io)
 
 // loads socket setup file
-require('./socket')(io)  
+require('./socket')(io) 
 
 
 const authRoutes = require('./routes/Auth.routes')
 const messageRoutes = require('./routes/Message.routes')
 const conversationRoutes = require('./routes/Conversation.routes')
+const userRoutes = require('./routes/User.routes')
 
 
 app.use('/api/auth', authRoutes)
 app.use('/api/message', messageRoutes)
 app.use('/api/conversation', conversationRoutes)
+app.use('/api/user', userRoutes)
 
 app.get('/health', (req, res) => {
   const healthCheck = {
