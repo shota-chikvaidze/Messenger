@@ -1,7 +1,7 @@
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
 const User = require('../models/User')
-const RefreshToken = require("../../../Learn-ai/back/models/RefreshToken")
+const RefreshToken = require("../models/RefreshTokens")
 
 exports.register = async (req, res) => {
     try{

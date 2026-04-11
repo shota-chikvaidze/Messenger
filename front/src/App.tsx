@@ -16,26 +16,25 @@ function App() {
 
   return (
     <>
-
       <Toaster position="top-right" toastOptions={toastStyles} />
 
       <Routes>
-        <Route path='/' element={ <Home /> } />
-        <Route path='/register' element={ <Register /> } />
 
+        <Route path='/home' element={<Home />} />
+        <Route path='/register' element={<Register />} />
 
-        <Route element={ <PrivateRoute /> }>
-          <Route element={ <SidebarWrapper /> } path='/' >
+        <Route element={<PrivateRoute />}>
+          <Route element={<SidebarWrapper />} path='/profile'>
             
-            <Route path='/find-friends' element={ <FindUsers /> } />
-            <Route index element={ <FindUsers /> } />
+            <Route index element={<FindUsers />} />
+            <Route path='find-friends' element={<FindUsers />} />
 
           </Route>
         </Route>
 
-        <Route path='*' element={ <Navigate to={'/'} /> } />
-      </Routes>
+        <Route path='*' element={<Navigate to='/home' />} />
 
+      </Routes>
     </>
   )
 }

@@ -35,12 +35,14 @@ const authRoutes = require('./routes/Auth.routes')
 const messageRoutes = require('./routes/Message.routes')
 const conversationRoutes = require('./routes/Conversation.routes')
 const userRoutes = require('./routes/User.routes')
+const friendRoutes = require('./routes/Friend.routes')
 
 
 app.use('/api/auth', authRoutes)
 app.use('/api/message', messageRoutes)
 app.use('/api/conversation', conversationRoutes)
 app.use('/api/user', userRoutes)
+app.use('/api/friends', friendRoutes)
 
 app.get('/health', (req, res) => {
   const healthCheck = {

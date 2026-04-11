@@ -1,12 +1,17 @@
 import axios from '../axios'
 
 export interface User {
-    id: string,
+    _id: string,
     email: string,
     username: string
 }
 
-export const GetUsersEndpoint = async (): Promise<User[]> => {
-    const res = await axios.get<User[]>('/user/get-users')
+export interface GetUsersResponse {
+  message: string
+  users: User[]
+}
+
+export const GetUsersEndpoint = async (): Promise<GetUsersResponse> => {
+    const res = await axios.get('/user/get-users')
     return res.data
 }

@@ -7,7 +7,7 @@ import { useMutation }  from '@tanstack/react-query'
 
 import { showSuccessToast, showErrorToast } from '../../utils/toast'
 
-import textImg from '../../assets/texting-image.webp'
+import textImg from '../../assets/images/texting-image.webp'
 
 export const Home = () => {
 
@@ -28,7 +28,7 @@ export const Home = () => {
     mutationFn: (payload: LoginPayload) => LoginEndpoint(payload),
     onSuccess: (data) => {
       setAuth(data.user, data.accessToken)
-      navigate('/find-friends')
+      navigate('/profile/find-friends')
       showSuccessToast(data.message)
     },
     onError: (error: any) => {
@@ -55,14 +55,14 @@ export const Home = () => {
         <div className='max-w-lg px-5 space-y-4 '>
           <div>
             
-            <h1 className='text-xl md:text-2xl lg:text-3xl text-gray-600 '> Log in to Snapchat </h1>
+            <h1 className='text-xl md:text-2xl text-gray-600 '> Log in to Snapchat </h1>
             <p className='text-sm md:text-lg text-gray-600 '> Chat, Snap, and video call your friends. Watch Stories and Spotlight, all from your computer. </p>
 
           </div>
 
           {user && (
             <div>
-              <button onClick={() => navigate('/find-friends')} className='bg-[var(--primary-color)] py-2 w-full text-white cursor-pointer mt-3 hover:bg-[var(--primary-color-hover)] '>
+              <button onClick={() => navigate('/profile/find-friends')} className='bg-[var(--primary-color)] py-2 w-full text-white cursor-pointer mt-3 hover:bg-[var(--primary-color-hover)] '>
                 Continue as {user.username}
               </button>
             </div>
