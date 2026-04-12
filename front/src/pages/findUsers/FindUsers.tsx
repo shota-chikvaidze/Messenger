@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { GetUsersEndpoint } from '../../api/endpoints/user'
-import { AcceptFriendReqEndpoint } from '../../api/endpoints/friends'
+import { SendFriendReqEndpoint } from '../../api/endpoints/friends'
 import { showErrorToast, showSuccessToast } from '../../utils/toast'
 
 export const FindUsers = () => {
@@ -17,7 +17,7 @@ export const FindUsers = () => {
 
   const sendRequestMutation = useMutation({
     mutationKey: ['send-friend-request'],
-    mutationFn: (id: string) => AcceptFriendReqEndpoint(id),
+    mutationFn: (id: string) => SendFriendReqEndpoint(id),
     onSuccess: (data) => {
       showSuccessToast(data?.message || "Friend request sent successfully")
     },
@@ -42,8 +42,10 @@ export const FindUsers = () => {
           {users.map((user) => (
             <div key={user._id}>
               
+              <img src={user.avatar} alt='User profile picture' />
+
               <p> {user.username} </p>
-              <button onClick={() => handleFriendRequests(user._id)}> Send friend request </button>
+              <button onClick={() => handleFriendRequests(user._id)} className='cursor-pointer '> Send friend request </button>
 
             </div>
           ))}

@@ -2,8 +2,9 @@ const User = require('../models/User')
 
 exports.getUsers = async (req, res) => {
     try{
+        const userId = req.user.id
 
-        const users = await User.find().sort({ createdAt: -1 })
+        const users = await User.find({ _id: { $ne: userId } }).sort({ createdAt: -1 })
         res.status(200).json({message: 'Users received successfully', users})
 
     }catch(err){

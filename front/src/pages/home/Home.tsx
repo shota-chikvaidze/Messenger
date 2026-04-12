@@ -49,7 +49,7 @@ export const Home = () => {
   if (!isInitialized) return null 
 
   return (
-    <section className='w-full h-screen flex justify-center items-center my-10 md:my-0 '>
+    <section className='w-full min-h-[85vh] flex justify-center items-center my-10 md:my-0 '>
       <div className='flex flex-col lg:flex-row md:items-center md:gap-4 h-auto  '>
 
         <div className='max-w-lg px-5 space-y-4 '>

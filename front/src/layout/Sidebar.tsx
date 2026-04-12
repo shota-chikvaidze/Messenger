@@ -1,7 +1,10 @@
 import { GetFriendsEndpoint } from '../api/endpoints/friends'
 import { useQuery } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
 
 import FriendsIcon from '../assets/icons/meeting.png'
+import UserPfp from '../assets/images/user-pfp.jpg'
+import { BiMessageRounded } from "react-icons/bi";
 
 export const Sidebar = () => {
 
@@ -15,12 +18,27 @@ export const Sidebar = () => {
     <aside className='w-[350px] mr-4 h-screen border-r border-gray-200 '>
         <div className='flex flex-col gap-4 mx-3 h-full '>
 
-          <div className='w-full my-4  '>
-            <input 
-              type='search' 
-              className='w-full border border-gray-200 rounded-2xl py-2 px-4 outline:border-gray-300 '
-              placeholder='Search users'
-            />
+          <div className='w-full my-4 space-y-3 '>
+
+            <div className='flex justify-between items-center '>
+              <img 
+                src={UserPfp} 
+                alt='User profile picture' 
+                className='w-10 h-10 rounded-full '
+              />
+
+              <Link to={'/profile/friend-requests'}>
+                <BiMessageRounded className='w-10 h-10 p-2 rounded-xl cursor-pointer bg-sky-500 text-white ' />
+              </Link>
+            </div>
+
+            <div>
+              <input 
+                type='search' 
+                className='w-full border border-gray-200 rounded-2xl py-2 px-4 outline:border-gray-300 '
+                placeholder='Search users'
+              />
+            </div>
           </div>
 
           <div className='h-full '>
@@ -49,7 +67,7 @@ export const Sidebar = () => {
               <div>
                 {friendsData?.map((friend) => (
                   <div key={friend._id}>
-
+                    <p> {friend.username} </p>
                   </div>
                 ))}
               </div>

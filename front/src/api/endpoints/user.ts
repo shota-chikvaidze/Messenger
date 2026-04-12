@@ -3,7 +3,8 @@ import axios from '../axios'
 export interface User {
     _id: string,
     email: string,
-    username: string
+    username: string,
+    avatar: string
 }
 
 export interface GetUsersResponse {

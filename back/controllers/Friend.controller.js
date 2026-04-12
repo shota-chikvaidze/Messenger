@@ -101,11 +101,12 @@ exports.getFriendRequests = async (req, res) => {
         const userId = req.user.id
 
         const user = await User.findById(userId)
+            .populate('friendRequests.from', 'username email avatar isOnline')
         if(!user){
             return res.status(404).json({message: 'user not found'})
         }
 
-        const filteredRequests = user.friendRequests.filter((status) => status.status === 'pending').populate('from', 'username email')
+        const filteredRequests = user.friendRequests.filter((status) => status.status === 'pending')
 
         res.status(200).json({message: 'requests received successfully', filteredRequests})
 

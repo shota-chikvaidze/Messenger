@@ -1,9 +1,9 @@
 import { Sidebar } from "../../layout/Sidebar"
 import { Outlet } from "react-router-dom"
 
-export const SidebarWrapper = () => {
+const SidebarWrapper = () => {
   return (
-    <div className="flex  ">
+    <div className="flex ">
         
         <Sidebar />
         <Outlet/>
@@ -11,3 +11,5 @@ export const SidebarWrapper = () => {
     </div>
   )
 }
+
+export default SidebarWrapper
