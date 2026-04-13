@@ -171,16 +171,37 @@ exports.refreshToken = async (req, res) => {
     }
 }
 
+// logout function for refresh tokens
+// exports.logout = async (req, res) => {
+//     try {
+        
+//         const { refreshToken } = req.cookies
+
+//         if (refreshToken) {
+//             await RefreshToken.logout(refreshToken)
+//         }
+
+//         res.clearCookie('refreshToken', {
+//             httpOnly: true,
+//             secure: process.env.NODE_ENV === 'production',
+//             sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+//             path: '/'
+//         })
+
+//         res.status(200).json({ message: 'loged out successfully' })
+        
+//     } catch(err) {
+//         res.status(500).json({message: 'Server error'})
+//     }
+// }
+
+// logout function for refresh tokens
 exports.logout = async (req, res) => {
     try {
         
-        const { refreshToken } = req.cookies
+        // const { accessToken } = req.cookies
 
-        if (refreshToken) {
-            await RefreshToken.logout(refreshToken)
-        }
-
-        res.clearCookie('refreshToken', {
+        res.clearCookie('accessToken', {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',

@@ -28,7 +28,7 @@ app.use(cookieParser())
 app.set('io', io)
 
 // loads socket setup file
-require('./socket')(io) 
+require('./socket/index')(io) 
 
 
 const authRoutes = require('./routes/Auth.routes')

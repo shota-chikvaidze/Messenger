@@ -50,18 +50,28 @@ exports.acceptFriendRequest = async (req, res) => {
             return res.status(404).json({message: 'user not found'})
         }
 
-        const request = acceptorUser.friendRequests.some(
+        const request = acceptorUser.friendRequests.find(
             r => r.from.toString() === requesterId && r.status === 'pending'
         )
         if(!request){
             return res.status(404).json({message: 'request not found'})
         }
 
-        await User.findByIdAndUpdate(acceptor, {
-            friendRequests: { status: "accepted" }
-        })
+        request.status = 'accepted'
 
-        acceptorUser.friends.push(requesterId)
+        if(!acceptorUser.friends.includes(requesterId)) {
+          acceptorUser.friends.push(requesterId)
+        }
+
+        const requesterUser = await User.findById(requesterId)
+        if(requesterUser && !requesterUser.friends.includes(acceptor)) {
+          requesterUser.friends.push(acceptor)
+          await requesterUser.save()
+        }
+
+        await acceptorUser.save()
+
+        res.json({ message: 'Friend request accepted' })
 
     }catch(err){
         res.status(500).json({message: 'Server error', error: err.message})

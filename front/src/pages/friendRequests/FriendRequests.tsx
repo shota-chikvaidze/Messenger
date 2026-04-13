@@ -1,9 +1,11 @@
 
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { GetFriendReqEndpoint, AcceptFriendReqEndpoint } from '../../api/endpoints/friends'
 import { showSuccessToast, showErrorToast } from '../../utils/toast'
 
 export const FriendRequests = () => {
+
+  const qc = useQueryClient()
 
   const { data: friendReqData } = useQuery({
     queryKey: ['get-friend-requests'],
@@ -11,12 +13,13 @@ export const FriendRequests = () => {
   })
 
   const friends = friendReqData?.filteredRequests || []
-  console.log(friends)
 
   const acceptReqMutation = useMutation({
     mutationKey: ['accept-frind-request'],
     mutationFn: (id: string) => AcceptFriendReqEndpoint(id),
     onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: ['get-friend-requests'] })
+      qc.invalidateQueries({ queryKey: ['get-friends'] })
       showSuccessToast(data.message || "Accepted successfully!")
     },
     onError: (error: any) => {

@@ -31,3 +31,8 @@ export const MeEndpoint = async (): Promise<{ user: MeType }> => {
     const res = await axios.get<{ user: MeType }>('/auth/me')
     return res.data
 }
+
+export const LogoutEndpoint = async ()  => {
+    const res = await axios.post('/auth/logout')
+    return res.data
+}

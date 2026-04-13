@@ -1,18 +1,33 @@
 import { GetFriendsEndpoint } from '../api/endpoints/friends'
-import { useQuery } from '@tanstack/react-query'
+import { LogoutEndpoint } from '../api/endpoints/auth'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
+import { useAuth } from '../store/useAuth'
+import { showSuccessToast } from '../utils/toast'
 
 import FriendsIcon from '../assets/icons/meeting.png'
 import UserPfp from '../assets/images/user-pfp.jpg'
 import { BiMessageRounded } from "react-icons/bi";
 
+
 export const Sidebar = () => {
+
+
+  const logoutMutation = useMutation({
+    mutationKey: ['logout-mutation'],
+    mutationFn: () => LogoutEndpoint(),
+  })
+
+  const handleLogout = () => {
+    logoutMutation.mutate()
+    useAuth.getState().clearAuth()
+    showSuccessToast("Logged out successfully")
+  }
 
   const { data: friendsData } = useQuery({
     queryKey: ['get-friends'],
     queryFn: () => GetFriendsEndpoint()
   })
-
 
   return (
     <aside className='w-[350px] mr-4 h-screen border-r border-gray-200 '>
@@ -21,12 +36,31 @@ export const Sidebar = () => {
           <div className='w-full my-4 space-y-3 '>
 
             <div className='flex justify-between items-center '>
-              <img 
-                src={UserPfp} 
-                alt='User profile picture' 
-                className='w-10 h-10 rounded-full '
-              />
+              <div className="relative group">
+                <img 
+                  src={UserPfp}
+                  alt="User profile picture"
+                  className="w-10 h-10 rounded-full cursor-pointer object-cover border border-gray-300"
+                />
 
+                <div className="absolute top-full mt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                  <div className="w-40 bg-white rounded-xl shadow-lg border border-gray-100 p-2 backdrop-blur-md">
+
+                    <button className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-700 cursor-pointer hover:bg-gray-100 transition">
+                      Profile
+                    </button>
+
+                    <button 
+                      className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-500 cursor-pointer hover:bg-red-50 transition"
+                      onClick={handleLogout}
+                    >
+                      Logout
+                    </button>
+
+                  </div>
+                </div>
+              </div>
+              
               <Link to={'/profile/friend-requests'}>
                 <BiMessageRounded className='w-10 h-10 p-2 rounded-xl cursor-pointer bg-sky-500 text-white ' />
               </Link>
