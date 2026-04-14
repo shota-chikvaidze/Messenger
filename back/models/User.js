@@ -6,11 +6,13 @@ const userSchema = mongoose.Schema({
     password: { type: String, required: true },
     isOnline: { type: Boolean },
     avatar: { type: String },
+    avatarPublicId: { type: String },
 
-    friends: [{ 
+    friends: [{
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'User' 
     }],
+    
     friendRequests: [{
         from: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         status: { 

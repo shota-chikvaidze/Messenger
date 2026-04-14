@@ -12,6 +12,7 @@ import { BiMessageRounded } from "react-icons/bi";
 
 export const Sidebar = () => {
 
+  const user = useAuth((store) => store.user)
 
   const logoutMutation = useMutation({
     mutationKey: ['logout-mutation'],
@@ -29,6 +30,7 @@ export const Sidebar = () => {
     queryFn: () => GetFriendsEndpoint()
   })
 
+
   return (
     <aside className='w-[350px] mr-4 h-screen border-r border-gray-200 '>
         <div className='flex flex-col gap-4 mx-3 h-full '>
@@ -38,7 +40,7 @@ export const Sidebar = () => {
             <div className='flex justify-between items-center '>
               <div className="relative group">
                 <img 
-                  src={UserPfp}
+                  src={user?.avatar}
                   alt="User profile picture"
                   className="w-10 h-10 rounded-full cursor-pointer object-cover border border-gray-300"
                 />
@@ -46,9 +48,11 @@ export const Sidebar = () => {
                 <div className="absolute top-full mt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                   <div className="w-40 bg-white rounded-xl shadow-lg border border-gray-100 p-2 backdrop-blur-md">
 
-                    <button className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-700 cursor-pointer hover:bg-gray-100 transition">
-                      Profile
-                    </button>
+                    <Link to={'/profile/edit'}>
+                      <button className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-700 cursor-pointer hover:bg-gray-100 transition">
+                        Profile
+                      </button>
+                    </Link>
 
                     <button 
                       className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-500 cursor-pointer hover:bg-red-50 transition"
@@ -101,6 +105,7 @@ export const Sidebar = () => {
               <div>
                 {friendsData?.map((friend) => (
                   <div key={friend._id}>
+                    <img src={friend?.avatar || UserPfp} alt='User profile picture' />
                     <p> {friend.username} </p>
                   </div>
                 ))}

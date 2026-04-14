@@ -3,6 +3,7 @@ import { Register } from './pages/register/Register'
 import { Home } from './pages/home/Home'
 import { FindUsers } from './pages/findUsers/FindUsers'
 import { FriendRequests } from './pages/friendRequests/FriendRequests'
+import { Profile } from './pages/profile/Profile'
 
 import { Toaster } from 'react-hot-toast'
 import { toastStyles } from './utils/toast'
@@ -37,6 +38,7 @@ function App() {
             <Route index element={<FindUsers />} />
             <Route path='find-friends' element={<FindUsers />} />
             <Route path='friend-requests' element={<FriendRequests />} />
+            <Route path='edit' element={<Profile />} />
 
           </Route>
         </Route>
