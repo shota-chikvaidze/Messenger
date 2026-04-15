@@ -30,6 +30,7 @@ export const Home = () => {
       setAuth(data.user, data.accessToken)
       navigate('/profile/find-friends')
       showSuccessToast(data.message)
+      console.log(data)
     },
     onError: (error: any) => {
       showErrorToast(error?.response?.data?.message || 'შესვლა ვერ მოხერხდა')

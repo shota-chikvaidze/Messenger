@@ -34,6 +34,9 @@ exports.sendFriendRequest = async (req, res) => {
         targetUser.friendRequests.push({ from: userId, status: "pending" })
         await targetUser.save()
 
+        res.status(200).json({ message: 'Friend request sent' })
+
+
     }catch(err){
         res.status(500).json({message: 'Server error', error: err.message})
     }
@@ -71,7 +74,7 @@ exports.acceptFriendRequest = async (req, res) => {
 
         await acceptorUser.save()
 
-        res.json({ message: 'Friend request accepted' })
+        res.status(200).json({ message: 'Friend request accepted' })
 
     }catch(err){
         res.status(500).json({message: 'Server error', error: err.message})

@@ -40,9 +40,9 @@ export const Sidebar = () => {
             <div className='flex justify-between items-center '>
               <div className="relative group">
                 <img 
-                  src={user?.avatar}
+                  src={user?.avatar || UserPfp}
                   alt="User profile picture"
-                  className="w-10 h-10 rounded-full cursor-pointer object-cover border border-gray-300"
+                  className="w-12 h-12 rounded-full cursor-pointer object-cover "
                 />
 
                 <div className="absolute top-full mt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">

@@ -25,7 +25,7 @@ exports.register = async (req, res) => {
         })
 
         const accessToken = jwt.sign({ id: createUser._id }, process.env.JWT_SECRET, {
-            expiresIn: "15m"
+            expiresIn: "2d"
         })
 
         // const refreshToken = await RefreshToken.createToken(createUser._id)
@@ -49,6 +49,7 @@ exports.register = async (req, res) => {
               id: createUser._id,
               email: createUser.email,
               username: createUser.username,
+              avatar: createUser.avatar,
             }
         })
 
@@ -76,7 +77,7 @@ exports.login = async (req, res) => {
         }
 
         const accessToken = jwt.sign({ id: findUser._id }, process.env.JWT_SECRET, {
-            expiresIn: "15m"
+            expiresIn: "2d"
         })
 
 
@@ -101,6 +102,7 @@ exports.login = async (req, res) => {
               id: findUser._id,
               email: findUser.email,
               username: findUser.username,
+              avatar: findUser.avatar,
             }
         })
 
@@ -150,19 +152,9 @@ exports.refreshToken = async (req, res) => {
             accessToken,
             user: {
                 id: user._id,
-                avatarConfig: user.avatarConfig,
-                name: user.name,
-                lastname: user.lastname,
-                createdAt: user.createdAt,
+                username: user.username,
+                avatar: user.avatar,
                 email: user.email,
-                role: user.role,
-                hearts: user.hearts,
-                xp: user.xp,
-                onboardingCompleted: user.onboardingCompleted,
-                learningGoal: user.learningGoal,
-                stats: user.stats,
-                achievements: user.achievements,
-                purchasedCourses: user.purchasedCourses
             }
         })
 

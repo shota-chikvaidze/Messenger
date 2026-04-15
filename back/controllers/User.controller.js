@@ -5,8 +5,34 @@ exports.getUsers = async (req, res) => {
     try{
         const userId = req.user.id
 
-        const users = await User.find({ _id: { $ne: userId } }).sort({ createdAt: -1 })
-        res.status(200).json({message: 'Users received successfully', users})
+        const currentUser = await User.findById(userId)
+
+        // Combine my id and my friends ids
+        const excludedIds = [userId, ...currentUser.friends]
+
+        const users = await User.find({
+            _id: { $nin: excludedIds }
+        }).sort({ createdAt: -1 })
+
+        const formattedUsers = users.map(user => {
+            const hasSentRequest = user.friendRequests.some(
+                r => r.from.toString() === userId && r.status === 'pending'
+            )
+
+            return {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+                avatar: user.avatar || null,
+
+                hasSentRequest
+            }
+        })
+
+        res.status(200).json({
+            message: 'Users received successfully',
+            users: formattedUsers
+        })
 
     }catch(err){
         res.status(500).json({message: 'Server error', error: err.message})

@@ -1,10 +1,11 @@
 import axios from '../axios'
 
 export interface User {
-    _id: string,
-    email: string,
-    username: string,
-    avatar: string
+    id: string
+    email: string
+    username: string
+    avatar: string | null
+    hasSentRequest: boolean
 }
 
 export interface GetUsersResponse {

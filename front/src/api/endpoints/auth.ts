@@ -15,6 +15,7 @@ export interface MeType {
     id: string,
     email: string,
     username: string
+    avatar: string
 }
 
 export const LoginEndpoint = async (payload: LoginPayload) => {
