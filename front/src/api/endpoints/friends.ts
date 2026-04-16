@@ -23,9 +23,11 @@ export interface GetFriendRequestsResponse {
     filteredRequests: FriendRequest[]
 }
 
-export const GetFriendsEndpoint = async (): Promise<Friend[]> => {
-    const res = await axios.get('/friends/get-friends')
-    return res.data.user.friends
+export const GetFriendsEndpoint = async (search: string): Promise<Friend[]> => {
+    const res = await axios.get('/friends/get-friends', {
+        params: { search }
+    })
+    return res.data.friends
 }
 
 export const SendFriendReqEndpoint = async (id: string) => {
@@ -35,6 +37,11 @@ export const SendFriendReqEndpoint = async (id: string) => {
 
 export const AcceptFriendReqEndpoint = async (id: string) => {
     const res = await axios.patch(`/friends/accept-friend-request/${id}`)
+    return res.data
+}
+
+export const RejectFriendReqEndpoint = async (id: string) => {
+    const res = await axios.patch(`/friends/reject-friend-request/${id}`)
     return res.data
 }
 

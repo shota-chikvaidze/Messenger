@@ -132,13 +132,23 @@ exports.getFriends = async (req, res) => {
     try{
 
         const userId = req.user.id
+        const { search } = req.query
 
-        const user = await User.findById(userId).populate('friends', 'username avatar isOnline lastSeen')
+        const user = await User.findById(userId).populate({
+            path: 'friends',
+            match: search && search.trim() !== ''
+                ? { username: { $regex: search.trim(), $options: 'i' } }
+                : {},
+            select: 'username avatar isOnline lastSeen'
+        })
+
         if(!user){
             return res.status(404).json({message: 'user not found'})
         }
 
-        res.status(200).json({message: 'Friends received successfully!', user})
+        let friends = user.friends
+
+        res.status(200).json({message: 'Friends received successfully!', friends})
 
     }catch(err){
         res.status(500).json({message: 'Server error', error: err.message})

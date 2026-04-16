@@ -31,4 +31,6 @@ const userSchema = mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 })
 
+userSchema.index({ username: 1 })
+
 module.exports = mongoose.model("User", userSchema)

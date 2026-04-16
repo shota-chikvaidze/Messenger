@@ -36,11 +36,12 @@ function App() {
           <Route element={<SidebarWrapper />} path='/profile'>
             
             <Route index element={<FindUsers />} />
-            <Route path='find-friends' element={<FindUsers />} />
             <Route path='friend-requests' element={<FriendRequests />} />
             <Route path='edit' element={<Profile />} />
 
           </Route>
+          
+          <Route path='/find-friends' element={<FindUsers />} />
         </Route>
 
         <Route path='*' element={<Navigate to='/home' />} />

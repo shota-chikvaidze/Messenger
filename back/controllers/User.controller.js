@@ -4,15 +4,26 @@ const cloudinary = require('../config/cloudinary')
 exports.getUsers = async (req, res) => {
     try{
         const userId = req.user.id
+        const { search } = req.query
 
         const currentUser = await User.findById(userId)
 
         // Combine my id and my friends ids
         const excludedIds = [userId, ...currentUser.friends]
 
-        const users = await User.find({
+        const filter = {
             _id: { $nin: excludedIds }
-        }).sort({ createdAt: -1 })
+        }
+
+        if(search && search.trim !== '') {
+            filter.username = {
+                $regex: search.trim(),
+                $options: 'i'
+            }
+        }
+
+        const users = await User.find(filter)
+            .sort({ createdAt: -1 })
 
         const formattedUsers = users.map(user => {
             const hasSentRequest = user.friendRequests.some(
@@ -28,7 +39,7 @@ exports.getUsers = async (req, res) => {
                 hasSentRequest
             }
         })
-
+        
         res.status(200).json({
             message: 'Users received successfully',
             users: formattedUsers

@@ -13,8 +13,10 @@ export interface GetUsersResponse {
   users: User[]
 }
 
-export const GetUsersEndpoint = async (): Promise<GetUsersResponse> => {
-    const res = await axios.get('/user/get-users')
+export const GetUsersEndpoint = async (search: string): Promise<GetUsersResponse> => {
+    const res = await axios.get('/user/get-users', {
+        params: { search }
+    })
     return res.data
 }
 
