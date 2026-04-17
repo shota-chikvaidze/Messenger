@@ -4,6 +4,16 @@
 :root {
     --primary-color: #0095e5;
     --primary-color-hover: #0082c8;
+
+    --border-color: #242326;
+    --background-color: #121214;
+    --background-secondary-color: #1d1d1d;
+    --background-hover: #27262c;
+
+    --outlet-color: #17181d;
+
+    --text-color: #f2f2f2;
+
 }
 
 * {

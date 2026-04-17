@@ -37,7 +37,7 @@ export const Profile = () => {
   }
 
   return (
-    <div>
+    <div className='text-[var(--text-color)] '>
       <input 
         type="file" 
         accept="image/*"

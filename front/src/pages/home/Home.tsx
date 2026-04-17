@@ -28,12 +28,11 @@ export const Home = () => {
     mutationFn: (payload: LoginPayload) => LoginEndpoint(payload),
     onSuccess: (data) => {
       setAuth(data.user, data.accessToken)
-      navigate('/profile/find-friends')
+      navigate('/profile')
       showSuccessToast(data.message)
-      console.log(data)
     },
     onError: (error: any) => {
-      showErrorToast(error?.response?.data?.message || 'შესვლა ვერ მოხერხდა')
+      showErrorToast(error?.response?.data?.message || 'Error Occurred')
     }
   })
 
@@ -50,20 +49,20 @@ export const Home = () => {
   if (!isInitialized) return null 
 
   return (
-    <section className='w-full min-h-[85vh] flex justify-center items-center my-10 md:my-0 '>
+    <section className='w-full bg-white min-h-[85vh] flex justify-center items-center my-10 md:my-0 '>
       <div className='flex flex-col lg:flex-row md:items-center md:gap-4 h-auto  '>
 
         <div className='max-w-lg px-5 space-y-4 '>
           <div>
             
-            <h1 className='text-xl md:text-2xl text-gray-600 '> Log in to Snapchat </h1>
+            <h1 className='text-xl md:text-2xl text-gray-700 '> Log in to Snapchat </h1>
             <p className='text-sm md:text-lg text-gray-600 '> Chat, Snap, and video call your friends. Watch Stories and Spotlight, all from your computer. </p>
 
           </div>
 
           {user && (
             <div>
-              <button onClick={() => navigate('/profile/find-friends')} className='bg-[var(--primary-color)] py-2 w-full text-white cursor-pointer mt-3 hover:bg-[var(--primary-color-hover)] '>
+              <button onClick={() => navigate('/profile')} className='bg-[var(--primary-color)] py-2 w-full text-white cursor-pointer mt-3 hover:bg-[var(--primary-color-hover)] '>
                 Continue as {user.username}
               </button>
             </div>

@@ -10,4 +10,4 @@ router.post('/create-group-conversations', protect, conversationController.creat
 router.post('/add-participant/:id', protect, conversationController.addParticipant)
 router.delete('/leave-conversation/:id', protect, conversationController.leaveConversation)
 
-module.exports = router
+module.exports = router 

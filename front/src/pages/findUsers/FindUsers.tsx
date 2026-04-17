@@ -39,14 +39,14 @@ export const FindUsers = () => {
   }
 
   return (
-    <section className='w-full min-h-screen p-10 flex justify-center '>
-      <div className='max-w-lg w-full flex flex-col items-start '>
+    <section className='w-full min-h-screen p-10 flex  '>
+      <div className='max-w-4xl w-full flex flex-col items-start '>
 
 
           <div className="mb-6 w-full">
             <div className="pb-4 ">
-              <h3 className="text-3xl text-gray-700 font-bold "> Find friends </h3>
-              <p className="text-gray-500 "> Discover people you may know </p>
+              <h3 className="text-3xl text-[var(--text-color)] font-bold "> Find friends </h3>
+              <p className="text-[var(--text-color)]/70 "> Discover people you may know </p>
             </div>
 
             <input 
@@ -54,7 +54,7 @@ export const FindUsers = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search..."
-              className="border border-gray-200 py-2 px-5 rounded-lg max-w-lg w-full "
+              className="border border-blue-400 py-2 text-[var(--text-color)] px-5 rounded-lg max-w-4xl w-full "
             />
           </div>
 
@@ -63,20 +63,20 @@ export const FindUsers = () => {
 
               <IoSearch className="text-5xl text-gray-400 " />
 
-              <h2 className="text-gray-600 "> No users found </h2>
-              <p className="text-gray-500 text-sm font-[300] ">Try a different search term</p>
+              <h2 className="text-gray-200 "> No users found </h2>
+              <p className="text-gray-400 text-sm font-[300] ">Try a different search term</p>
 
             </div>
           ) : (
             <div className='w-full space-y-2 '>
               {users.map((user) => (
 
-                <div key={user.id} className='group px-2 py-3 w-full flex gap-4 justify-between items-center rounded-md hover:bg-[#EDF2FE]  '>
+                <div key={user.id} className='group px-2 py-3 w-full flex gap-4 justify-between items-center rounded-md hover:bg-[var(--background-hover)] '>
 
                   <div className='flex items-center rounded-full gap-3 '>
                     <img src={user.avatar || UserPfp} alt='User profile picture' className='border-2 border-transparent group-hover:border-blue-700 w-[60px] h-[60px] rounded-full ' />
 
-                    <p> {user.username} </p>
+                    <p className="text-[var(--text-color)] "> {user.username} </p>
                   </div>
                   
                   <button 

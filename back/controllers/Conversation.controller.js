@@ -32,30 +32,41 @@ exports.getConversationById = async (req, res) => {
 }
 
 exports.createConversation = async (req, res) => {
-    try{
-
+    try {
         const { participants, groupName } = req.body
         const userId = req.user.id
 
-        if(!participants || participants.length !== 2){
-            return res.status(400).json({message: 'participants are requried'})
+        if (!participants || participants.length !== 2) {
+            return res.status(400).json({ message: 'participants are required' })
+        }
+
+        const otherUserId = participants.find(id => id !== userId)
+
+        if (!otherUserId) {
+            return res.status(400).json({ message: 'invalid participants' })
         }
 
         const existing = await Conversation.findOne({
             isGroup: false,
-            participants: { $all: [userId, participants[0]] }
+            participants: { $all: [userId, otherUserId] }
         })
-        if (existing) return res.status(200).json({ conversation: existing })
+
+        if (existing) {
+            return res.status(200).json({ conversation: existing })
+        }
 
         const conversation = await Conversation.create({
-            participants,
+            participants: [userId, otherUserId],
             groupName
         })
 
-        res.status(201).json({message: 'Conversation created successfully', conversation})
+        res.status(201).json({
+            message: 'Conversation created successfully',
+            conversation
+        })
 
-    }catch(err){
-        res.status(500).json({message: 'Server error'})
+    } catch (err) {
+        res.status(500).json({ message: 'Server error' })
     }
 }
 

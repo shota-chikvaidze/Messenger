@@ -3,7 +3,7 @@ import { FaSnapchat } from "react-icons/fa6";
 
 const Navbar = () => {
   return (
-    <nav className='w-full h-[80px] flex justify-center '>
+    <nav className='bg-white w-full h-[80px] flex justify-center '>
         <div className='max-w-6xl w-full flex justify-between items-center '>
             
             <Link to={'/home'}>

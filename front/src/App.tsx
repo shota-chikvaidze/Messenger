@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { Register } from './pages/register/Register'
 import { Home } from './pages/home/Home'
 import { FindUsers } from './pages/findUsers/FindUsers'
+import { AllFriends } from './pages/findUsers/AllFriends'
 import { FriendRequests } from './pages/friendRequests/FriendRequests'
 import { Profile } from './pages/profile/Profile'
 
@@ -35,13 +36,13 @@ function App() {
         <Route element={<PrivateRoute />}>
           <Route element={<SidebarWrapper />} path='/profile'>
             
-            <Route index element={<FindUsers />} />
             <Route path='friend-requests' element={<FriendRequests />} />
+            <Route path='friends' element={<AllFriends />} />
             <Route path='edit' element={<Profile />} />
-
+            <Route path='find-friends' element={<FindUsers />} />
+          
           </Route>
           
-          <Route path='/find-friends' element={<FindUsers />} />
         </Route>
 
         <Route path='*' element={<Navigate to='/home' />} />
