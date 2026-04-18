@@ -54,19 +54,19 @@ export const FriendRequests = () => {
       <div className='max-w-5xl w-full  '>
         
         {friends?.map((friendReq) => (
-          <div key={friendReq._id}>
+          <div key={friendReq.id}>
             <p> {friendReq.from.username} </p>
 
             <div className='space-x-10 '>
               <button 
-                onClick={() => handleAcceptMutation(friendReq.from._id)}
+                onClick={() => handleAcceptMutation(friendReq.from.id)}
                 className='cursor-pointer '
               > 
                 Accept 
               </button>
 
               <button 
-                onClick={() => handleRejectMutation(friendReq.from._id)}
+                onClick={() => handleRejectMutation(friendReq.from.id)}
                 className='cursor-pointer '
               > 
                 Reject 

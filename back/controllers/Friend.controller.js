@@ -1,6 +1,26 @@
 const { request } = require('http')
 const User = require('../models/User')
 
+const formatFriend = (friend) => ({
+    id: friend._id,
+    username: friend.username,
+    avatar: friend.avatar,
+    isOnline: friend.isOnline,
+    lastSeen: friend.lastSeen
+})
+
+const formatFriendRequest = (request) => ({
+    id: request._id,
+    status: request.status,
+    from: {
+        id: request.from._id,
+        username: request.from.username,
+        email: request.from.email,
+        avatar: request.from.avatar,
+        isOnline: request.from.isOnline
+    }
+})
+
 exports.sendFriendRequest = async (req, res) => {
     try{
 
@@ -119,7 +139,9 @@ exports.getFriendRequests = async (req, res) => {
             return res.status(404).json({message: 'user not found'})
         }
 
-        const filteredRequests = user.friendRequests.filter((status) => status.status === 'pending')
+        const filteredRequests = user.friendRequests
+            .filter((request) => request.status === 'pending')
+            .map(formatFriendRequest)
 
         res.status(200).json({message: 'requests received successfully', filteredRequests})
 
@@ -146,7 +168,7 @@ exports.getFriends = async (req, res) => {
             return res.status(404).json({message: 'user not found'})
         }
 
-        let friends = user.friends
+        let friends = user.friends.map(formatFriend)
 
         res.status(200).json({message: 'Friends received successfully!', friends})
 

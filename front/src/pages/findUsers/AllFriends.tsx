@@ -74,7 +74,7 @@ export const AllFriends = () => {
               <div className="divide-y divide-[#26272e]">
                 {friends.map((friend) => (
                   <div
-                    key={friend._id}
+                    key={friend.id}
                     className="group flex min-h-[78px] w-full items-center justify-between gap-4 px-5 transition hover:bg-[#1d1e24]"
                   >
                     <div className="flex min-w-0 items-center gap-4">

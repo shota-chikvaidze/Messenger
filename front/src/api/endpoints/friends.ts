@@ -1,19 +1,21 @@
 import axios from '../axios'
 
 export interface Friend {
+    id: string
     username: string
     avatar: string
     isOnline: boolean
-    lastSeen: string,
-    _id: string
+    lastSeen: string
 }
 
 export interface FriendRequest {
-    _id: string
+    id: string
     from: {
-      _id: string
+      id: string
       username: string
       email: string
+      avatar?: string
+      isOnline?: boolean
     }
     status: string
 }

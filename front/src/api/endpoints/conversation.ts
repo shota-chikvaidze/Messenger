@@ -12,14 +12,14 @@ export interface createConversationData {
 
 // get conversation type
 interface UserPreview {
-    _id: string
+    id: string
     username: string
     avatar?: string
     isOnline?: boolean
 }
 
 interface ConversationType {
-    _id: string
+    id: string
     participants: UserPreview[],
 
     isGroup: boolean,

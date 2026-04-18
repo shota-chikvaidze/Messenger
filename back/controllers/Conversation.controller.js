@@ -1,12 +1,34 @@
 const Conversation = require('../models/Conversation')
 
+const formatParticipant = (participant) => ({
+    id: participant._id,
+    username: participant.username,
+    avatar: participant.avatar,
+    isOnline: participant.isOnline
+})
+
+const formatConversation = (conversation) => ({
+    id: conversation._id,
+    participants: conversation.participants.map(formatParticipant),
+    isGroup: conversation.isGroup,
+    groupName: conversation.groupName,
+    groupAvatar: conversation.groupAvatar,
+    lastMessage: conversation.lastMessage,
+    groupAdmin: conversation.groupAdmin,
+    createdAt: conversation.createdAt,
+    updatedAt: conversation.updatedAt
+})
+
 exports.getMyConversations = async (req, res) => {
     try{
 
         const conversations = await Conversation.find({ participants: req.user.id })
             .sort({ updatedAt: -1 })
             .populate("participants", "username avatar isOnline")
-        res.status(200).json({message: 'conversations fetched successfully', conversations})
+        res.status(200).json({
+            message: 'conversations fetched successfully',
+            conversations: conversations.map(formatConversation)
+        })
 
     }catch(err){
         res.status(500).json({message: 'Server error'})
@@ -24,7 +46,10 @@ exports.getConversationById = async (req, res) => {
             return res.status(404).json({message: 'conversation not found'})
         }
 
-        res.status(200).json({message: 'conversation fetched successfully', conversation})
+        res.status(200).json({
+            message: 'conversation fetched successfully',
+            conversation: formatConversation(conversation)
+        })
 
     }catch(err){
         res.status(500).json({message: 'Server error'})
@@ -52,7 +77,11 @@ exports.createConversation = async (req, res) => {
         })
 
         if (existing) {
-            return res.status(200).json({ conversation: existing })
+            const populatedExisting = await existing.populate('participants', 'username avatar isOnline')
+            return res.status(200).json({
+                message: 'Conversation already exists',
+                conversation: formatConversation(populatedExisting)
+            })
         }
 
         const conversation = await Conversation.create({
@@ -60,9 +89,11 @@ exports.createConversation = async (req, res) => {
             groupName
         })
 
+        const populated = await conversation.populate('participants', 'username avatar isOnline')
+
         res.status(201).json({
             message: 'Conversation created successfully',
-            conversation
+            conversation: formatConversation(populated)
         })
 
     } catch (err) {
@@ -80,7 +111,7 @@ exports.createGroupConversations = async (req, res) => {
             return res.status(400).json({ message: 'A group needs at least 2 other participants' })
         }
 
-        const allParticipants = [...new Set([participantIds, userId])]
+        const allParticipants = [...new Set([...participantIds, userId])]
 
         const conversation = await Conversation.create({
             participants: allParticipants,
@@ -91,7 +122,7 @@ exports.createGroupConversations = async (req, res) => {
 
         const populated = await conversation.populate('participants', 'username avatar isOnline')
 
-        res.status(201).json({ message: 'Group created successfully', conversation: populated })
+        res.status(201).json({ message: 'Group created successfully', conversation: formatConversation(populated) })
 
 
     }catch(err){
@@ -128,7 +159,7 @@ exports.addParticipant = async (req, res) => {
 
         const populated = await conversation.populate('participants', 'username avatar isOnline')
 
-        res.status(200).json({ message: 'Participant added', conversation: populated })
+        res.status(200).json({ message: 'Participant added', conversation: formatConversation(populated) })
 
 
 

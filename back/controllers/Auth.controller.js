@@ -215,8 +215,15 @@ exports.me = async (req, res) => {
             return res.status(401).json({message: 'user not found'})
         }
 
-        const { password, ...userObj } = userDoc.toObject()
-        res.status(200).json({ user: { ...userObj, hasPassword: !!password } })
+        res.status(200).json({
+            user: {
+                id: userDoc._id,
+                email: userDoc.email,
+                username: userDoc.username,
+                avatar: userDoc.avatar,
+                hasPassword: !!userDoc.password
+            }
+        })
 
     }catch(err){
         res.status(500).json({message: 'Server error'})

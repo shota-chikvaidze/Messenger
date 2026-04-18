@@ -73,7 +73,15 @@ exports.updateAvatar = async (req, res) => {
 
         await user.save()
 
-        res.status(200).json({ message: 'Avatar updated', user})
+        res.status(200).json({
+            message: 'Avatar updated',
+            user: {
+                id: user._id,
+                email: user.email,
+                username: user.username,
+                avatar: user.avatar
+            }
+        })
 
     }catch(err){
         res.status(500).json({message: 'Server error', error: err.message})
