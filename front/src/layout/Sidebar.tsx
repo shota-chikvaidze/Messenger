@@ -12,19 +12,20 @@ import { IoClose, IoSearch } from "react-icons/io5";
 import { BsPersonRaisedHand } from "react-icons/bs";
 import { GoGitPullRequest } from "react-icons/go";
 
-import { CreateConvEndpoint, type CreateConversationPayload, GetConversationEndpoint } from '../api/endpoints/conversation'
+import { CreateConvEndpoint, type CreateConversationPayload, GetConversationEndpoint, CreateGroupConvEndpoint, type CreateGroupConversationPayload } from '../api/endpoints/conversation'
 import { showSuccessToast, showErrorToast } from '../utils/toast'
 
 export const Sidebar = () => {
 
   const [addFriendPopup, setAddFriendPopup] = useState(false)
-  const [conversationPayload, setConversationPayload] = useState<CreateConversationPayload>({
-    participants: [], 
-    groupName: ''
-  })
-  const [search, setSearch] = useState('')
 
+  // states for group creation
+  const [selectedFriendIds, setSelectedFriendIds] = useState<string[]>([])
+  const [groupName, setGroupName] = useState('')
+
+  const [search, setSearch] = useState('')
   const user = useAuth((store) => store.user)
+
 
   const logoutMutation = useMutation({
     mutationKey: ['logout-mutation'],
@@ -46,59 +47,98 @@ export const Sidebar = () => {
 
   
   const currentUserId = user?.id
-  const selectedFriendId = conversationPayload.participants.find((id) => id !== currentUserId)
+  const hasSelectedFriends = selectedFriendIds.length > 0
+
+  const resetConversationPopup = () => {
+    refetch()
+    setAddFriendPopup(false)
+    setSearch('')
+    setSelectedFriendIds([])
+    setGroupName('')
+  }
 
   const createConvMutation = useMutation({
     mutationKey: ['create-conversation-mutation'],
     mutationFn: (payload: CreateConversationPayload) => CreateConvEndpoint(payload),
     onSuccess: (data) => {
       showSuccessToast(data.message || 'Conversation ready')
-      refetch()
-      setAddFriendPopup(false)
-      setSearch('')
-      setConversationPayload({
-        participants: [],
-        groupName: ''
-      })
+      resetConversationPopup()
     },
     onError: (error: any) => {
       showErrorToast(error?.response?.data?.message || 'Error Occurred')
     }
   })
 
-  const handleSubmit = () => {
-    if (!currentUserId || !selectedFriendId) {
-      showErrorToast('Choose a friend to start a conversation')
-      return
+  const createGroupConvMutation = useMutation({
+    mutationKey: ['create-group-conversation-mutation'],
+    mutationFn: (payload: CreateGroupConversationPayload) => CreateGroupConvEndpoint(payload),
+    onSuccess: (data) => {
+      showSuccessToast(data.message || 'Conversation ready')
+      resetConversationPopup()
+    },
+    onError: (error: any) => {
+      showErrorToast(error?.response?.data?.message || 'Error Occurred')
     }
+  })
 
-    createConvMutation.mutate(conversationPayload)
-  }
+  
 
-  const handleFriendCheckbox = (friendId: string, username: string, checked: boolean) => {
+  const handleSubmit = () => {
     if (!currentUserId) {
       showErrorToast('Please sign in again to start a conversation')
       return
     }
 
-    if (!checked) {
-      setConversationPayload({
-        participants: [],
-        groupName: ''
-      })
+    if (selectedFriendIds.length === 0) {
+      showErrorToast('Choose at least one friend')
       return
     }
 
-    setConversationPayload({
-      participants: [currentUserId, friendId],
-      groupName: username
+    if(selectedFriendIds.length === 1) {
+      const selectedFriend = friendsData?.find((friend) => friend.id === selectedFriendIds[0])
+
+      createConvMutation.mutate({
+        participants: [currentUserId, selectedFriendIds[0]],
+        groupName: selectedFriend?.username || ''
+      })
+
+      return
+    }
+
+    if(!groupName.trim()) {
+      showErrorToast('Enter a group name')
+      return
+    }
+
+    createGroupConvMutation.mutate({
+      name: groupName.trim(),
+      participantIds: selectedFriendIds
     })
+
+  }
+
+  const handleFriendCheckbox = (friendId: string, checked: boolean) => {
+    if (!currentUserId) {
+      showErrorToast('Please sign in again to start a conversation')
+      return
+    }
+
+    if (checked) {
+      setSelectedFriendIds((prev) => (
+        prev.includes(friendId) ? prev : [...prev, friendId]
+      ))
+      return
+    }
+
+    setSelectedFriendIds((prev) => prev.filter((id) => id !== friendId))
   }
 
   const { data: friendsData, isLoading: friendsLoading } = useQuery({
     queryKey: ['get-friends', search],
     queryFn: () => GetFriendsEndpoint(search)
   })
+
+
 
   return (
     <div className='relative'>
@@ -207,15 +247,46 @@ export const Sidebar = () => {
                           const findUserAvatar = friend.participants.filter(user => user.id !== currentUserId)
                           const avatar = findUserAvatar.find(user => user)
 
+                          const otherParticipants = friend.participants.filter((participants) => participants.id !== currentUserId)
+
+                          const groupPreviewAvatars = otherParticipants
+                            .filter((participants) => participants.avatar)
+                            .slice(0, 2)
+
                           return (
-                            <div key={friend.id} className='flex items-center gap-4 py-2 w-full px-3 cursor-pointer hover:bg-[var(--background-hover)] rounded-lg '>
-                              <img 
-                                src={avatar?.avatar || friend?.groupAvatar || UserPfp} 
-                                alt='User profile picture' 
-                                className='w-10 h-10 rounded-full '
-                              />
-                              <p className='text-[var(--text-color)] '> {friend.groupName} </p>
-                            </div>
+                            <Link key={friend.id} to={`/profile/chat/${friend.id}`}>
+                              <div className='flex items-center gap-4 py-2 w-full px-3 cursor-pointer hover:bg-[var(--background-hover)] rounded-lg '>
+
+                                {friend.isGroup ? (
+                                  friend.groupAvatar ? (
+                                    <img 
+                                      src={friend?.groupAvatar} 
+                                      alt='User profile picture' 
+                                      className='w-10 h-10 rounded-full object-cover'
+                                    />
+                                  ) : (
+                                    <div className="flex h-10 w-10 overflow-hidden rounded-full bg-[#202128]">
+                                      {groupPreviewAvatars.map((participant) => (
+                                        <img 
+                                          key={participant.id}
+                                          src={participant.avatar || UserPfp}
+                                          alt={`${participant.username} profile picture`}
+                                          className="h-10 w-1/2 object-cover"  
+                                        />
+                                      ))}
+                                    </div>
+                                  )
+                                ) : (
+                                  <img 
+                                    src={avatar?.avatar || UserPfp} 
+                                    alt='User profile picture' 
+                                    className='w-10 h-10 rounded-full object-cover'
+                                  />
+                                )}
+
+                                <p className='text-[var(--text-color)] '> {friend.groupName} </p>
+                              </div>
+                            </Link>
                           )
                         })}
                       </div>
@@ -312,8 +383,8 @@ export const Sidebar = () => {
                       <input
                         type='checkbox'
                         value={friend.id}
-                        checked={selectedFriendId === friend.id}
-                        onChange={(e) => handleFriendCheckbox(friend.id, friend.username, e.target.checked)}
+                        checked={selectedFriendIds.includes(friend.id)}
+                        onChange={(e) => handleFriendCheckbox(friend.id, e.target.checked)}
                         className='h-4 w-4 cursor-pointer accent-[#5865f2]'
                       />
                     </div>
@@ -322,16 +393,35 @@ export const Sidebar = () => {
               )}
             </div>
 
+            {selectedFriendIds.length > 1 && (
+              <div className='border-t border-[#2a2b32] px-5 py-4'>
+                <input
+                  value={groupName}
+                  onChange={(e) => setGroupName(e.target.value)}
+                  placeholder="Group name"
+                  className='h-11 w-full rounded-[8px] border border-[#30313a] bg-[#111216] px-4 text-[15px] text-white outline-none transition placeholder:text-[#81848e] focus:border-[#5865f2]'
+                />
+              </div>
+            )}
+
             <div className='flex items-center justify-between gap-3 border-t border-[#2a2b32] bg-[#14151a] px-5 py-4'>
-              <p className='text-sm text-[#9da0a8]'>Start a new direct message</p>
+              <p className='text-sm text-[#9da0a8]'>
+                {selectedFriendIds.length === 0
+                  ? 'Select friends'
+                  : selectedFriendIds.length === 1
+                    ? 'Start a direct message'
+                    : `${selectedFriendIds.length} friends selected`}
+              </p>
               
               <button
                 type='button'
                 onClick={handleSubmit}
-                disabled={!selectedFriendId || createConvMutation.isPending}
+                disabled={!hasSelectedFriends || createConvMutation.isPending || createGroupConvMutation.isPending}
                 className='h-10 cursor-pointer rounded-[8px] bg-[#5865f2] px-5 text-sm font-semibold text-white transition hover:bg-[#4752c4] disabled:cursor-not-allowed disabled:bg-[#363743] disabled:text-[#858894]'
               >
-                {createConvMutation.isPending ? 'Starting...' : 'Start chat'}
+                {createConvMutation.isPending || createGroupConvMutation.isPending
+                  ? 'Starting...'
+                  : selectedFriendIds.length > 1 ? 'Create group' : 'Start chat'}
               </button>
             </div>
 

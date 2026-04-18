@@ -104,11 +104,15 @@ exports.createConversation = async (req, res) => {
 exports.createGroupConversations = async (req, res) => {
     try{
 
-        const { name, participantIds } = req.body
+        const { name, participantIds, groupAvatar } = req.body
         const userId = req.user.id
 
         if (!participantIds || participantIds.length < 2) {
             return res.status(400).json({ message: 'A group needs at least 2 other participants' })
+        }
+
+        if (!name || name.trim() === '') {
+            return res.status(400).json({ message: 'Group name is required' })
         }
 
         const allParticipants = [...new Set([...participantIds, userId])]
@@ -116,8 +120,9 @@ exports.createGroupConversations = async (req, res) => {
         const conversation = await Conversation.create({
             participants: allParticipants,
             isGroup: true,
-            groupName: name,
-            groupAdmin: userId
+            groupName: name.trim(),
+            groupAdmin: userId,
+            groupAvatar
         })
 
         const populated = await conversation.populate('participants', 'username avatar isOnline')
@@ -126,7 +131,7 @@ exports.createGroupConversations = async (req, res) => {
 
 
     }catch(err){
-        res.status(500).json({message: 'Server error'})
+        res.status(500).json({message: 'Server error', error: err.message})
     }
 }
 

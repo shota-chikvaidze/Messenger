@@ -5,6 +5,7 @@ import { FindUsers } from './pages/findUsers/FindUsers'
 import { AllFriends } from './pages/findUsers/AllFriends'
 import { FriendRequests } from './pages/friendRequests/FriendRequests'
 import { Profile } from './pages/profile/Profile'
+import Chat from './components/Chat/Chat'
 
 import { Toaster } from 'react-hot-toast'
 import { toastStyles } from './utils/toast'
@@ -40,6 +41,7 @@ function App() {
             <Route path='friends' element={<AllFriends />} />
             <Route path='edit' element={<Profile />} />
             <Route path='find-friends' element={<FindUsers />} />
+            <Route path='chat/:id' element={<Chat />} />
           
           </Route>
           
