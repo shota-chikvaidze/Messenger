@@ -1,6 +1,7 @@
 module.exports = {
     SEND_MESSAGE: 'send_message',
     NEW_MESSAGE: 'new_message',
+    JOIN_CONVERSATION: 'join_conversation',
     TYPING_START: 'typing_start',
     TYPING_STOP: 'typing_stop',
     USER_ONLINE: 'user_online',

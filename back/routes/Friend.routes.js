@@ -8,6 +8,6 @@ router.patch('/accept-friend-request/:id', protect, friendController.acceptFrien
 router.patch('/reject-friend-request/:id', protect, friendController.rejectFriendRequest)
 router.get('/get-friend-requests', protect, friendController.getFriendRequests)
 router.get('/get-friends', protect, friendController.getFriends)
-router.delete('/remove-friend', protect, friendController.removeFriend)
+router.delete('/remove-friend/:id', protect, friendController.removeFriend)
 
 module.exports = router

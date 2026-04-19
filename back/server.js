@@ -13,6 +13,7 @@ const httpServer = http.createServer(app)
 const io = new Server(httpServer, {
     cors: {
         origin: process.env.CLIENT_URL || "http://localhost:5173",
+        credentials: true
     }
 })
 
@@ -58,8 +59,8 @@ app.get('/health', (req, res) => {
 const PORT = process.env.PORT || 5000
 
 mongoose.connect(process.env.MONGO_URL, {
-    
+
 }).then(() => {
     console.log("MongoDB connected successfully")
-    app.listen(PORT, console.log('server is listening'))
+    httpServer.listen(PORT, console.log('server is listening'))
 })

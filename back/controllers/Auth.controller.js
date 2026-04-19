@@ -221,7 +221,8 @@ exports.me = async (req, res) => {
                 email: userDoc.email,
                 username: userDoc.username,
                 avatar: userDoc.avatar,
-                hasPassword: !!userDoc.password
+                hasPassword: !!userDoc.password,
+                friends: userDoc.friends
             }
         })
 

@@ -244,6 +244,7 @@ export const Sidebar = () => {
 
                         {conversations?.map((friend) => {
 
+                          // for displaying avatars
                           const findUserAvatar = friend.participants.filter(user => user.id !== currentUserId)
                           const avatar = findUserAvatar.find(user => user)
 
@@ -284,7 +285,7 @@ export const Sidebar = () => {
                                   />
                                 )}
 
-                                <p className='text-[var(--text-color)] '> {friend.groupName} </p>
+                                <p className='text-[var(--text-color)] '> {avatar?.username || friend.groupName} </p>
                               </div>
                             </Link>
                           )

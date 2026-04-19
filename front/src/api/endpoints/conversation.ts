@@ -45,6 +45,7 @@ export interface CreateGroupConversationPayload {
 export interface CreateConversationPayload {
     participants: string[], 
     groupName: string
+    id?: string
 }
 interface CreateConversationData {
     conversation: ConversationType

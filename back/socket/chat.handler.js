@@ -1,7 +1,22 @@
 const { createMessage, editMessage, removeMessage } = require('../services/message.service')
 const EVENTS = require('../constants/events')
+const { formatMessage } = require('../utils/formatMessage')
+const Conversation = require('../models/Conversation')
 
 exports.registerChatHandlers = (io, socket) => {
+
+    socket.on(EVENTS.JOIN_CONVERSATION, async (data) => {
+        const { conversationId } = data
+
+        const conversation = await Conversation.findOne({
+            _id: conversationId,
+            participants: socket.user.id
+        })
+
+        if (!conversation) return
+
+        socket.join(conversationId)
+    })
 
     socket.on(EVENTS.SEND_MESSAGE, async (data) => {
         
@@ -13,7 +28,7 @@ exports.registerChatHandlers = (io, socket) => {
             senderId: socket.user.id
         })
 
-        io.to(conversationId).emit(EVENTS.NEW_MESSAGE, message)
+        io.to(conversationId).emit(EVENTS.NEW_MESSAGE, formatMessage(message))
 
     })
 
@@ -36,7 +51,7 @@ exports.registerChatHandlers = (io, socket) => {
             content
         })
 
-        io.to(conversationId).emit(EVENTS.EDIT_MESSAGES, message)
+        io.to(conversationId).emit(EVENTS.EDIT_MESSAGES, formatMessage(message))
 
     })
 

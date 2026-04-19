@@ -2,6 +2,7 @@ const Message = require('../models/Message')
 const Conversation = require('../models/Conversation')
 
 const { createMessage, editMessage, removeMessage } = require('../services/message.service')
+const { formatMessage } = require('../utils/formatMessage')
 
 exports.getMessages = async (req, res) => {
     try{
@@ -19,11 +20,14 @@ exports.getMessages = async (req, res) => {
             return res.status(403).json({message: 'You are not part of the chat'})
         }
 
-        const message = await Message.find({ conversationId: conversationId, isDeleted: false })
+        const messages = await Message.find({ conversationId: conversationId, isDeleted: false })
             .sort({ createdAt: 1 })
             .populate('sender', 'username avatar')
 
-        res.status(200).json({message: 'messages received successfully', message})
+        res.status(200).json({
+            message: 'messages received successfully',
+            messages: messages.map(formatMessage)
+        })
 
     }catch(err){
         res.status(500).json({message: 'Server error'})
@@ -59,9 +63,14 @@ exports.sendMessage = async (req, res) => {
         })
 
         const io = req.app.get('io')
-        io.to(conversationId).emit('new_message', message)
+        const formattedMessage = formatMessage(message)
 
-        res.status(201).json({message: 'message sent successfully', message})
+        io.to(conversationId).emit('new_message', formattedMessage)
+
+        res.status(201).json({
+            message: 'message sent successfully',
+            sentMessage: formattedMessage
+        })
 
 
     }catch(err){
@@ -161,7 +170,10 @@ exports.editMessage = async (req, res) => {
             content
         })
 
-        res.status(200).json({message: 'message updated successfully', updated})
+        res.status(200).json({
+            message: 'message updated successfully',
+            updatedMessage: formatMessage(updated)
+        })
         
     }catch(err){
         res.status(500).json({message: 'Server error'})

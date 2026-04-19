@@ -16,6 +16,7 @@ export interface MeType {
     email: string,
     username: string
     avatar: string
+    friends: string[]
 }
 
 export const LoginEndpoint = async (payload: LoginPayload) => {

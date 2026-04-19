@@ -52,3 +52,7 @@ export const GetFriendReqEndpoint = async (): Promise<GetFriendRequestsResponse>
     return res.data
 }
 
+export const RemoveFriendEndpoint = async (id: string) => {
+    const res = await axios.delete(`/friends/remove-friend/${id}`)
+    return res.data
+}

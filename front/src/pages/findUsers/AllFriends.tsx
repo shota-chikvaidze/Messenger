@@ -1,24 +1,104 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
-import { GetFriendsEndpoint } from '../../api/endpoints/friends'
-import { useQuery } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
+import { GetFriendsEndpoint, RemoveFriendEndpoint } from '../../api/endpoints/friends'
+import { CreateConvEndpoint, type CreateConversationPayload, GetConversationEndpoint } from '../../api/endpoints/conversation'
+import { useAuth } from '../../store/useAuth'
 
-import FriendsIcon from '../../assets/icons/meeting.png'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Link, useNavigate } from 'react-router-dom'
+import { showSuccessToast, showErrorToast} from '../../utils/toast'
+
 import UserPfp from '../../assets/images/user-pfp.jpg'
 import { IoSearch } from "react-icons/io5";
 import { BsChatFill, BsPersonRaisedHand, BsThreeDotsVertical } from "react-icons/bs";
 
+
 export const AllFriends = () => {
 
   const [search, setSearch] = useState('')
+  const [morePopupFriendId, setMorePopupFriendId] = useState<string | null>(null)
+  const queryClient = useQueryClient()
+  const user = useAuth((store) => store.user)
+  const navigate = useNavigate()
 
   const { data: friendsData, isLoading: friendsLoading } = useQuery({
     queryKey: ['get-friends', search],
     queryFn: () => GetFriendsEndpoint(search)
   })
 
+  const { data: conversationData, isLoading: conversationLoading } = useQuery({
+    queryKey: ['get-conversations',],
+    queryFn: () => GetConversationEndpoint()
+  })
+
   const friends = friendsData || []
+  const currentUser = user?.id
+  const conversations = conversationData?.conversations || []
+
+  const removeFriendMutation = useMutation({
+    mutationKey: ['remove-friend-mutation'],
+    mutationFn: (id: string) => RemoveFriendEndpoint(id),
+    onSuccess: (data) => {
+      showSuccessToast(data.message || 'Removed friend successfully!')
+      setMorePopupFriendId(null)
+      queryClient.invalidateQueries({ queryKey: ['get-friends'] })
+    },
+    onError: (error: any) => {
+      showErrorToast(error?.response?.data?.message || 'Error Occurred')
+    }
+  })
+
+  const handleRemoveFriend = (id: string) => {
+    removeFriendMutation.mutate(id)
+  }
+
+  const toggleMorePopup = (id: string) => {
+    setMorePopupFriendId((currentId) => currentId === id ? null : id)
+  }
+
+  // function for closing popup
+  useEffect(() => {
+    if (!morePopupFriendId) return
+
+    const handleOutsideClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+
+      if (target.closest(`[data-more-popup-root="${morePopupFriendId}"]`)) return
+
+      setMorePopupFriendId(null)
+    }
+
+    document.addEventListener('mousedown', handleOutsideClick)
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick)
+    }
+  }, [morePopupFriendId])
+
+
+  const createConvMutation = useMutation({
+    mutationKey: ['create-conversation-mutation'],
+    mutationFn: (payload: CreateConversationPayload) => CreateConvEndpoint(payload),
+    onSuccess: (data) => {
+      showSuccessToast(data.message || 'Conversation ready')
+      navigate(`/profile/chat/${data.conversation.id}`)
+    },
+    onError: (error: any) => {
+      showErrorToast(error?.response?.data?.message || 'Error Occurred')
+    }
+  })
+
+  const handleStartConversation = (otherUser: string, username: string) => {
+    if (!currentUser) {
+      showErrorToast('Please sign in again to start a conversation')
+      return
+    }
+    
+    createConvMutation.mutate({
+      participants: [currentUser, otherUser],
+      groupName: username || '',
+    })
+  }
 
   return (
     <section className="h-screen w-full overflow-hidden text-[var(--text-color)]">
@@ -93,7 +173,7 @@ export const AllFriends = () => {
                       </div>
 
                       <div>
-                        <p className="truncate text-[18px] font-seibold leading-6 text-white">
+                        <p className="truncate text-[18px] font-semibold leading-6 text-white">
                           {friend.username}
                         </p>
                         <p className="text-[14px] font-medium leading-5 text-[#9da0a8]">
@@ -102,22 +182,41 @@ export const AllFriends = () => {
                       </div>
                     </div>
 
-                    <div className="flex shrink-0 items-center gap-2 pr-4 text-[#b9bbc2]">
+                    <div
+                      data-more-popup-root={friend.id}
+                      className="flex shrink-0 relative items-center gap-2 pr-4 text-[#b9bbc2]"
+                    >
                       <button
                         type="button"
                         aria-label={`Message ${friend.username}`}
+                        onClick={() => handleStartConversation(friend.id, friend.username)}
                         className="grid h-10 w-10 cursor-pointer place-items-center rounded-[8px] transition hover:bg-[#2c2d35] hover:text-white"
                       >
                         <BsChatFill className="text-[18px]" />
                       </button>
 
                       <button
+                        onClick={() => toggleMorePopup(friend.id)}
                         type="button"
+                        aria-expanded={morePopupFriendId === friend.id}
                         aria-label={`More options for ${friend.username}`}
                         className="grid h-10 w-10 cursor-pointer place-items-center rounded-[8px] transition hover:bg-[#2c2d35] hover:text-white"
                       >
                         <BsThreeDotsVertical className="text-[19px]" />
                       </button>
+
+                      {morePopupFriendId === friend.id && (
+                        <div className="absolute right-4 top-12 z-20 w-44 rounded-[8px] border border-[#30313a] bg-[var(--background-secondary-color)] p-1 shadow-xl shadow-black/30">
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveFriend(friend.id)}
+                            disabled={removeFriendMutation.isPending}
+                            className="flex w-full cursor-pointer items-center rounded-[6px] px-3 py-2 text-left text-[15px] font-semibold text-[#ff6b6b] transition hover:bg-[#2c2d35] hover:text-[#ff8585] disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            Remove friend
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                   </div>
