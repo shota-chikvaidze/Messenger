@@ -14,7 +14,9 @@ const formatSender = (sender) => {
         }
     }
 
-    return formatId(sender)
+    return {
+        id: formatId(sender)
+    }
 }
 
 const formatMessage = (message) => ({

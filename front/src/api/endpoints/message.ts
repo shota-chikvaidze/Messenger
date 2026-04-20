@@ -4,13 +4,13 @@ import axios from "../axios"
 interface MessageSender {
     id: string
     username: string
-    avatar?: string
+    avatar: string
 }
 
 export interface MessageType {
     id: string,
     conversationId: string,
-    sender: MessageSender | string | null,
+    sender: MessageSender,
     content: string,
     type: string,
     readBy: string[],

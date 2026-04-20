@@ -80,8 +80,7 @@ export const Sidebar = () => {
       showErrorToast(error?.response?.data?.message || 'Error Occurred')
     }
   })
-
-  
+ 
 
   const handleSubmit = () => {
     if (!currentUserId) {
@@ -137,8 +136,7 @@ export const Sidebar = () => {
     queryKey: ['get-friends', search],
     queryFn: () => GetFriendsEndpoint(search)
   })
-
-
+  
 
   return (
     <div className='relative'>
@@ -266,13 +264,17 @@ export const Sidebar = () => {
                                       className='w-10 h-10 rounded-full object-cover'
                                     />
                                   ) : (
-                                    <div className="flex h-10 w-10 overflow-hidden rounded-full bg-[#202128]">
-                                      {groupPreviewAvatars.map((participant) => (
+                                    <div className="relative h-10 w-10 shrink-0 rounded-full ">
+                                      {groupPreviewAvatars.map((participant, index) => (
                                         <img 
                                           key={participant.id}
                                           src={participant.avatar || UserPfp}
                                           alt={`${participant.username} profile picture`}
-                                          className="h-10 w-1/2 object-cover"  
+                                          className={`absolute rounded-full object-cover ${
+                                            index === 0
+                                              ? 'left-0.5 top-0.5 h-7 w-7 bg-[#5865f2]'
+                                              : 'bottom-0.5 right-0.5 h-7 w-7 border-2 border-[var(--background-color)]'
+                                          }`}
                                         />
                                       ))}
                                     </div>
@@ -285,7 +287,7 @@ export const Sidebar = () => {
                                   />
                                 )}
 
-                                <p className='text-[var(--text-color)] '> {avatar?.username || friend.groupName} </p>
+                                <p className='text-[var(--text-color)] '> {friend.groupName} </p>
                               </div>
                             </Link>
                           )

@@ -13,7 +13,7 @@ interface ConversationType {
 
     isGroup: boolean,
     groupName?: string,
-    groupAvatar?: string |null,
+    groupAvatar?: string | null,
     
     lastMessage?: {
         content: string
