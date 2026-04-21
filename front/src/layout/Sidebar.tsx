@@ -305,7 +305,7 @@ export const Sidebar = () => {
                                     <img
                                       src={avatar?.avatar || UserPfp}
                                       alt='User profile picture'
-                                      className='h-8 w-8 rounded-full object-cover'
+                                      className='h-10 w-10 rounded-full object-cover'
                                     />
                             
                                     <span className={`w-3 h-3 rounded-full absolute -bottom-0.5 right-0 border-2  ${avatar?.isOnline ? "bg-[#23a55a] border-[#17181d]" : "bg-[#17181d] border-[#858585]"} `} />

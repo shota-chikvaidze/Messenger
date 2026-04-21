@@ -7,6 +7,7 @@ const conversationSchema = mongoose.Schema({
     groupName: { type: String, trim: true },
 
     groupAvatar: { type: String },
+    avatarPublicId: { type: String },
     
     lastMessage: {
       type: mongoose.Schema.Types.ObjectId,

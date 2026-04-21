@@ -52,6 +52,11 @@ interface CreateConversationData {
     message: string
 }
 
+export interface UpdateConversationPayload {
+    id?: string
+    formData: FormData
+}
+
 
 export const CreateConvEndpoint = async (payload: CreateConversationPayload): Promise<CreateConversationData> => {
     const res = await axios.post('/conversation/create-conversations', payload)
@@ -73,3 +78,11 @@ export const GetConversationIdEndpoint = async (id: string): Promise<Conversatio
     return res.data
 }
 
+export const UpdateConversationEndpoint = async ({ id, formData }: UpdateConversationPayload): Promise<ConversationIdData> => {
+    const res = await axios.put(`/conversation/update-conversation/${id}`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+    return res.data
+}

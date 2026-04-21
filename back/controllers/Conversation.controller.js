@@ -1,4 +1,5 @@
 const Conversation = require('../models/Conversation')
+const cloudinary = require('../config/cloudinary')
 
 const formatParticipant = (participant) => ({
     id: participant._id,
@@ -199,5 +200,56 @@ exports.leaveConversation = async (req, res) => {
 
     }catch(err){
         res.status(500).json({message: 'Server error'})
+    }
+}
+
+
+exports.updateConversation = async (req, res) => {
+    try{
+
+        const conversationId = req.params.id
+        const { groupName } = req.body
+
+        const conversation = await Conversation.findById(conversationId)
+        if(!conversation){
+            return res.status(404).json({message: 'Conversation not found'})
+        }
+
+        if(!conversation.isGroup){
+            return res.status(400).json({ message: 'Only group conversations can be updated' })
+        }
+
+        if(conversation.groupAdmin?.toString() !== req.user.id){
+            return res.status(403).json({ message: 'Only the group admin can update this conversation' })
+        }
+
+        if(!req.file && (!groupName || !groupName.trim())) {
+            return res.status(400).json({ message: 'Nothing to update' })
+        }
+
+        if(req.file && conversation.avatarPublicId){
+            await cloudinary.uploader.destroy(conversation.avatarPublicId)
+        }
+
+        if(req.file){
+            conversation.groupAvatar = req.file.path
+            conversation.avatarPublicId = req.file.filename
+        }
+
+        if(groupName && groupName.trim()){
+            conversation.groupName = groupName.trim()
+        }
+
+        await conversation.save()
+
+        const populated = await conversation.populate('participants', 'username avatar isOnline')
+
+        res.status(200).json({
+            message: 'Conversation updated',
+            conversation: formatConversation(populated)
+        })
+
+    }catch(err){
+        res.status(500).json({message: 'Server error', error: err.message})
     }
 }
