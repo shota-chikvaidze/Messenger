@@ -13,12 +13,23 @@ import UserPfp from '../../assets/images/user-pfp.jpg'
 import { FaUserPlus } from "react-icons/fa6";
 import { MdModeEdit } from "react-icons/md";
 
+
+interface TypingEvent {
+  userId: string
+  conversationId: string
+}
+
+
 const Chat = () => {
     
   const [sendMessagePayload, setSendMessagePayload] = useState({
     content: '',
     type: 'text'
   })
+  const [typingUsers, setTypingUsers] = useState<string[]>([])
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isTypingRef = useRef(false)
+
   const { id } = useParams()
   const user = useAuth((store) => store.user)
   const queryClient = useQueryClient()
@@ -57,6 +68,12 @@ const Chat = () => {
 
   const handleSendMessage = (content: string, type: string) => {
     if (!id || !content.trim()) return
+
+    emitTypingStop()
+
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
+    }
 
     sendMessageMutation.mutate({
       id,
@@ -108,10 +125,66 @@ const Chat = () => {
     }
   }, [id, queryClient])
 
+  
+  // typing indicators
+  const emitTypingStart = () => {
+    if(!id || isTypingRef.current) return
+
+    socket.emit('typing_start', { conversationId: id })
+    isTypingRef.current = true
+  }
+
+  const emitTypingStop = () => {
+    if(!id || !isTypingRef.current) return
+
+    socket.emit('typing_stop', { conversationId: id })
+    isTypingRef.current = false
+  }
+
+  // Listen for typing events from other users in the current conversation
+  useEffect(() => {
+
+    if(!id) return
+
+    const handleTypingStart = (data: TypingEvent) => {
+      if(data.conversationId !== id) return
+      if(data.userId === currentUser) return
+
+      setTypingUsers((prev) => {
+        return prev.includes(data.userId) ? prev : [...prev, data.userId]
+      })
+    }
+    
+    const handleTypingStop = (data: TypingEvent) => {
+      if (data.conversationId !== id) return
+
+      setTypingUsers((prev) => prev.filter((userId) => userId !== data.userId))
+    }
+
+
+    socket.on('typing_start', handleTypingStart)
+    socket.on('typing_stop', handleTypingStop)
+
+    return () => {
+      socket.off('typing_start', handleTypingStart)
+      socket.off('typing_stop', handleTypingStop)
+    }
+  }, [id, currentUser])
+
+  const isSomeoneTyping = typingUsers.length > 0
+
+
+  // clear typing state after changing chats
+  useEffect(() => {
+    setTypingUsers([])
+  }, [id])
+  
+  
   // automatically scroll to bottom on message send
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [id, messages.length])
+  
 
   const convertDate = (date: string) => {
     return new Date(date).toLocaleString('en-US', {
@@ -128,6 +201,9 @@ const Chat = () => {
   const groupPreviewAvatars = otherParticipants
     ?.slice(0, 2) || []
 
+  const hasOtherOnlineUsers = conversation?.participants.some(
+    (participant) => participant.id !== currentUser && participant.isOnline
+  )
 
   if (isLoading) {
     return <div>Loading...</div>
@@ -145,33 +221,50 @@ const Chat = () => {
         <div className='grid h-8 w-8 place-items-center rounded-full text-[15px] font-semibold text-[#b5bac1]'>
           {conversation?.isGroup ? (
             conversation.groupAvatar ? (
-              <img
-                src={conversation.groupAvatar}
-                alt='Group profile'
-                className='h-8 w-8 rounded-full object-cover'
-              />
+              <div className='relative '>
+                <img
+                  src={conversation.groupAvatar}
+                  alt='Group profile'
+                  className='h-8 w-8 rounded-full object-cover'
+                />
+                
+                {hasOtherOnlineUsers && (
+                  <span className={`w-3 h-3 rounded-full absolute -bottom-2 right-0 border-2 bg-[#23a55a] border-[#17181d] `} />
+                )}
+              </div>
             ) : (
             <div className='relative h-6 w-7'>
               {groupPreviewAvatars.map((participant, index) => (
-                <img 
-                  key={participant.id}
-                  src={participant.avatar || UserPfp}
-                  alt={`${participant.username} profile picture`}
-                  className={`absolute rounded-full object-cover ${
-                    index === 0
-                      ? 'left-0 top-0 h-5 w-5 bg-[#5865f2]'
-                      : 'left-2 top-2 h-5 w-5 border-2 border-[var(--outlet-color)]'
-                  }`}
-                />
+                <div>
+                  <img 
+                    key={participant.id}
+                    src={participant.avatar || UserPfp}
+                    alt={`${participant.username} profile picture`}
+                    className={`absolute rounded-full object-cover ${
+                      index === 0
+                        ? 'left-0 top-0 h-5 w-5 bg-[#5865f2]'
+                        : 'left-2 top-2 h-5 w-5 border-2 border-[var(--outlet-color)]'
+                    }`}
+                  />
+                  
+                  {hasOtherOnlineUsers && (
+                    <span className={`w-3 h-3 rounded-full absolute -bottom-2 right-0 border-2 bg-[#23a55a] border-[#17181d] `} />
+                  )}
+                </div>
               ))}
             </div>
             )
           ) : (
-            <img
-              src={otherUser?.avatar || UserPfp}
-              alt='User profile picture'
-              className='h-8 w-8 rounded-full object-cover'
-            />
+            <div className='relative '>
+              <img
+                src={otherUser?.avatar || UserPfp}
+                alt='User profile picture'
+                className='h-8 w-8 rounded-full object-cover'
+              />
+      
+              <span className={`w-3 h-3 rounded-full absolute -bottom-0.5 right-0 border-2  ${otherUser?.isOnline ? "bg-[#23a55a] border-[#17181d]" : "bg-[#17181d] border-[#858585]"} `} />
+
+            </div>
           )}
           
         </div>
@@ -250,24 +343,24 @@ const Chat = () => {
             return (
               <div
                 key={message.id}
-                className={`group flex gap-3 rounded-[8px] py-2 transition hover:bg-[var(--background-hover)]`}
+                className={`group flex gap-3 rounded-[8px] py-2 transition hover:bg-[var(--background-hover)] ${isMine ? "justify-end " : ""} `}
               >
-                <div className={`flex max-w-[70%] gap-3 rounded-[8px] px-5 py-2 text-[#f2f3f5] `} >
+                <div className={`flex max-w-[70%] gap-4 rounded-[8px] px-5 py-2 text-[#f2f3f5] ${isMine ? "flex-row-reverse " : ""} `} >
                   
                   <img
                     src={message.sender.avatar}
                     alt={`${message.sender.username} avatar`}
-                    className='h-9 w-9 shrink-0 rounded-full object-cover'
+                    className='h-9 w-9 mt-1 shrink-0 rounded-full object-cover'
                   />
 
-                  <div>
+                  <div className={`${isMine ? "text-right " : ""} `}>
                     {message.sender.username && (
-                      <div className='flex items-center gap-1 '>
+                      <div className={`flex items-center gap-2 ${isMine ? "flex-row-reverse " : ""}  `}>
                         <p className='mb-1 text-md font-semibold text-[var(--text-color)]'>
                           {message.sender.username}
                         </p>
 
-                        <p className='text-xs text-gray-300 mb-1 '>
+                        <p className='text-xs text-gray-500 mb-1 '>
                           {convertDate(message.createdAt)}
                         </p>
                       </div>
@@ -286,6 +379,14 @@ const Chat = () => {
         </div>
       </div>
 
+      <div>
+        {isSomeoneTyping && (
+          <p className="text-sm text-gray-400 px-5 pb-2">
+            {otherUser?.username} is typing...
+          </p>
+        )}
+      </div>
+
       <footer className='shrink-0 bg-[var(--outlet-color)] px-5 pb-6 pt-3'>
         <form
           onSubmit={(e) => {
@@ -297,11 +398,31 @@ const Chat = () => {
           <input 
             type='text'
             value={sendMessagePayload.content}
-            onChange={(e) => setSendMessagePayload((payload) => ({
-              ...payload,
-              content: e.target.value,
-              type: 'text'
-            }))}
+            onChange={(e) => {
+
+              const value = e.target.value
+
+              setSendMessagePayload((payload) => ({
+                ...payload,
+                content: value,
+                type: 'text'
+              }))
+
+              if(value.trim()) {
+                emitTypingStart()
+              }else{
+                emitTypingStop()
+              }
+
+              if(typingTimeoutRef.current) {
+                clearTimeout(typingTimeoutRef.current)
+              }
+
+              typingTimeoutRef.current = setTimeout(() => {
+                emitTypingStop()
+              }, 1500)
+
+            }}
             className='h-12 w-full bg-transparent text-[15px] text-[#f2f3f5] outline-none placeholder:text-[#949ba4]'
             placeholder={`Message @${chatTitle || 'conversation'}`}
           />

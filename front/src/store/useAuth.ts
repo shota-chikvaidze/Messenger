@@ -6,6 +6,7 @@ interface User {
     username: string
     avatar: string
     friends: string[]
+    isOnline: boolean
 }
 
 interface AuthState {

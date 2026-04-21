@@ -32,16 +32,21 @@ export const Sidebar = () => {
     mutationFn: () => LogoutEndpoint(),
   })
 
+  const { data: conversationData, isLoading: conversationLoading, refetch } = useQuery({
+    queryKey: ['get-conversations'],
+    queryFn: () => GetConversationEndpoint()
+  })
+
+  const { data: friendsData, isLoading: friendsLoading } = useQuery({
+    queryKey: ['get-friends', search],
+    queryFn: () => GetFriendsEndpoint(search)
+  })
+
   const handleLogout = () => {
     logoutMutation.mutate()
     useAuth.getState().clearAuth()
     showSuccessToast("Logged out successfully")
   }
-
-  const { data: conversationData, isLoading: conversationLoading, refetch } = useQuery({
-    queryKey: ['get-conversations'],
-    queryFn: () => GetConversationEndpoint()
-  })
 
   const conversations = conversationData?.conversations || []
 
@@ -132,11 +137,12 @@ export const Sidebar = () => {
     setSelectedFriendIds((prev) => prev.filter((id) => id !== friendId))
   }
 
-  const { data: friendsData, isLoading: friendsLoading } = useQuery({
-    queryKey: ['get-friends', search],
-    queryFn: () => GetFriendsEndpoint(search)
-  })
-  
+  const conversation = conversations.find((conv) => conv.participants)
+
+  const hasOtherOnlineUsers = conversation?.participants.some(
+    (participant) => participant.id !== currentUserId && participant.isOnline
+  )
+
 
   return (
     <div className='relative'>
@@ -152,6 +158,9 @@ export const Sidebar = () => {
                     alt="User profile picture"
                     className="w-9 h-9 rounded-full cursor-pointer object-cover "
                   />
+
+                  <span className={`w-3 h-3 rounded-full absolute -bottom-0.5 right-0 border-2  ${user?.isOnline ? "bg-[#23a55a] border-[#17181d]" : "bg-[#17181d] border-[#858585]"} `} />
+
 
                   <div className="absolute top-full  opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                     <div className="w-40 mt-2 bg-[var(--background-color)] rounded-xl shadow-lg border border-[var(--border-color)] p-2 backdrop-blur-md">
@@ -258,36 +267,53 @@ export const Sidebar = () => {
 
                                 {friend.isGroup ? (
                                   friend.groupAvatar ? (
-                                    <img 
-                                      src={friend?.groupAvatar} 
-                                      alt='User profile picture' 
-                                      className='w-10 h-10 rounded-full object-cover'
-                                    />
+                                    <div className='relative '>
+                                      <img
+                                        src={friend?.groupAvatar}
+                                        alt='Group profile'
+                                        className='h-10 w-10 rounded-full object-cover'
+                                      />
+                                      
+                                      {hasOtherOnlineUsers && (
+                                        <span className={`w-3 h-3 rounded-full absolute -bottom-2 right-0 border-2 bg-[#23a55a] border-[#17181d] `} />
+                                      )}
+                                    </div>
                                   ) : (
                                     <div className="relative h-10 w-10 shrink-0 rounded-full ">
                                       {groupPreviewAvatars.map((participant, index) => (
-                                        <img 
-                                          key={participant.id}
-                                          src={participant.avatar || UserPfp}
-                                          alt={`${participant.username} profile picture`}
-                                          className={`absolute rounded-full object-cover ${
-                                            index === 0
-                                              ? 'left-0.5 top-0.5 h-7 w-7 bg-[#5865f2]'
-                                              : 'bottom-0.5 right-0.5 h-7 w-7 border-2 border-[var(--background-color)]'
-                                          }`}
-                                        />
+                                        <div>
+                                          <img 
+                                            key={participant.id}
+                                            src={participant.avatar || UserPfp}
+                                            alt={`${participant.username} profile picture`}
+                                            className={`absolute rounded-full object-cover ${
+                                              index === 0
+                                                ? 'left-0 top-0 h-7 w-7 bg-[#5865f2]'
+                                                : 'left-2 top-2 h-7 w-7 border-2 border-[var(--outlet-color)]'
+                                            }`}
+                                          />
+                                          
+                                          {hasOtherOnlineUsers && (
+                                            <span className={`w-3 h-3 rounded-full absolute -bottom-0 right-0.5 border-2 bg-[#23a55a] border-[#17181d] `} />
+                                          )}
+                                        </div>
                                       ))}
                                     </div>
                                   )
                                 ) : (
-                                  <img 
-                                    src={avatar?.avatar || UserPfp} 
-                                    alt='User profile picture' 
-                                    className='w-10 h-10 rounded-full object-cover'
-                                  />
+                                  <div className='relative '>
+                                    <img
+                                      src={avatar?.avatar || UserPfp}
+                                      alt='User profile picture'
+                                      className='h-8 w-8 rounded-full object-cover'
+                                    />
+                            
+                                    <span className={`w-3 h-3 rounded-full absolute -bottom-0.5 right-0 border-2  ${avatar?.isOnline ? "bg-[#23a55a] border-[#17181d]" : "bg-[#17181d] border-[#858585]"} `} />
+                                                      
+                                  </div>
                                 )}
 
-                                <p className='text-[var(--text-color)] '> {friend.groupName} </p>
+                                <p className='text-[var(--text-color)] '> {friend.isGroup ? friend.groupName : avatar?.username} </p>
                               </div>
                             </Link>
                           )

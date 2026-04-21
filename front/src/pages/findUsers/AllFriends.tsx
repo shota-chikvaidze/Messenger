@@ -165,11 +165,9 @@ export const AllFriends = () => {
                           alt={`${friend.username} profile picture`}
                           className="h-10 w-10 rounded-full object-cover"
                         />
-                        <span
-                          className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-[3px] border-[#17181d] ${
-                            friend.isOnline ? 'bg-[#23a55a]' : 'bg-[#17181d] ring-2 ring-[#8c8f99]'
-                          }`}
-                        />
+
+                        <span className={`w-3 h-3 rounded-full absolute -bottom-0.5 right-0 border-2  ${friend?.isOnline ? "bg-[#23a55a] border-[#17181d]" : "bg-[#17181d] border-[#858585]"} `} />
+
                       </div>
 
                       <div>
