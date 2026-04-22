@@ -227,13 +227,13 @@ exports.updateConversation = async (req, res) => {
             return res.status(400).json({ message: 'Nothing to update' })
         }
 
-        if(req.file && conversation.avatarPublicId){
-            await cloudinary.uploader.destroy(conversation.avatarPublicId)
-        }
-
         if(req.file){
             conversation.groupAvatar = req.file.path
             conversation.avatarPublicId = req.file.filename
+        }
+
+        if(req.file && conversation.avatarPublicId){
+            await cloudinary.uploader.destroy(conversation.avatarPublicId)
         }
 
         if(groupName && groupName.trim()){

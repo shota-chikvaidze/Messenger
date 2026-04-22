@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { GetConversationIdEndpoint, UpdateConversationEndpoint, type UpdateConversationPayload } from '../../api/endpoints/conversation'
 import { GetMessagesEndpoint, SendMessagesEndpoint, type SendMessagePayload } from '../../api/endpoints/message'
+import { GetFriendsEndpoint } from '../../api/endpoints/friends'
 import { useAuth } from '../../store/useAuth'
 
 import { socket } from '../../socket/socket'
@@ -14,7 +15,10 @@ import { MdModeEdit } from "react-icons/md";
 import { FaUserFriends } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
 import { showErrorToast, showSuccessToast } from '../../utils/toast'
-
+import FriendsIcon from '../../assets/icons/meeting.png'
+import { IoClose, IoSearch } from "react-icons/io5";
+import { BsPersonRaisedHand } from "react-icons/bs";
+import { GoGitPullRequest } from "react-icons/go";
 
 interface TypingEvent {
   userId: string
@@ -29,8 +33,12 @@ const Chat = () => {
     type: 'text'
   })
   const [groupName, setGroupName] = useState('')
+  const [search, setSearch] = useState('')
+  const [selectedFriendIds, setSelectedFriendIds] = useState<string[]>([])
+  
   const [editGroupPopup, setEditGroupPopup] = useState(false)
-  const [preview, setPreview] = useState<string | null>(null)
+  const [addFriendPopup, setAddFriendPopup] = useState(false)
+
   const [typingUsers, setTypingUsers] = useState<string[]>([])
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isTypingRef = useRef(false)
@@ -52,13 +60,29 @@ const Chat = () => {
     enabled: Boolean(id)
   })
 
+  const { data: friendsData, isLoading: friendsLoading } = useQuery({
+    queryKey: ['get-friends', search],
+    queryFn: () => GetFriendsEndpoint(search)
+  })
+
   const conversation = conversationData?.conversation
   const messages = messageData?.messages || []
   const isLoading = conversationLoading || messageLoading
 
+
+  // friends that are not in chat
+  const participantIds = conversation?.participants.map(user => user.id) || []
+  const friendsNotInChat = friendsData?.filter(
+    (user) => !participantIds.includes(user.id)
+  )
+
+
   const currentUser = user?.id
   const otherUser = conversation?.participants.find((user) => user.id !== currentUser)
   const chatTitle = conversation?.isGroup ? conversation.groupName : otherUser?.username
+
+  const hasSelectedFriends = selectedFriendIds.length > 0
+
 
   const sendMessageMutation = useMutation({
     mutationKey: ['send-message'],
@@ -92,8 +116,6 @@ const Chat = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-
-    setPreview(URL.createObjectURL(file))
 
     const formData = new FormData()
     formData.append('groupAvatar', file)
@@ -274,12 +296,13 @@ const Chat = () => {
 
   return (
     <section className='relative flex h-screen min-h-0 w-full flex-col overflow-hidden bg-[var(--outlet-color)] text-[#dbdee1]'>
-      <header className='flex h-14 shrink-0 items-center gap-3 border-b border-[#1f2026] bg-[var(--outlet-color)] px-5 shadow-sm'>
+      
+      <header className='absolute w-full flex h-14 shrink-0 items-center gap-3 border-b border-[#1f2026] bg-[var(--outlet-color)] px-5 shadow-sm'>
         
         <div className='grid h-8 w-8 place-items-center rounded-full text-[15px] font-semibold text-[#b5bac1]'>
           {conversation?.isGroup ? (
             conversation.groupAvatar ? (
-              <div className='relative '>
+              <div className='relative h-8 w-8 '>
                 <img
                   src={conversation.groupAvatar}
                   alt='Group profile'
@@ -287,33 +310,31 @@ const Chat = () => {
                 />
                 
                 {hasOtherOnlineUsers && (
-                  <span className={`w-3 h-3 rounded-full absolute -bottom-2 right-0 border-2 bg-[#23a55a] border-[#17181d] `} />
+                  <span className={`w-3 h-3 rounded-full absolute -bottom-1 right-0 border-2 bg-[#23a55a] border-[#17181d] `} />
                 )}
               </div>
             ) : (
-            <div className='relative h-6 w-7'>
+            <div className='relative h-8 w-8'>
               {groupPreviewAvatars.map((participant, index) => (
-                <div>
-                  <img 
-                    key={participant.id}
-                    src={participant.avatar || UserPfp}
-                    alt={`${participant.username} profile picture`}
-                    className={`absolute rounded-full object-cover ${
-                      index === 0
-                        ? 'left-0 top-0 h-5 w-5 bg-[#5865f2]'
-                        : 'left-2 top-2 h-5 w-5 border-2 border-[var(--outlet-color)]'
-                    }`}
-                  />
-                  
-                  {hasOtherOnlineUsers && (
-                    <span className={`w-3 h-3 rounded-full absolute -bottom-2 right-0 border-2 bg-[#23a55a] border-[#17181d] `} />
-                  )}
-                </div>
+                <img 
+                  key={participant.id}
+                  src={participant.avatar || UserPfp}
+                  alt={`${participant.username} profile picture`}
+                  className={`absolute rounded-full object-cover ${
+                    index === 0
+                      ? 'left-0 top-0 h-5 w-5 bg-[#5865f2]'
+                      : 'left-2 top-2 h-5 w-5 border-2 border-[var(--outlet-color)]'
+                  }`}
+                />
               ))}
+
+              {hasOtherOnlineUsers && (
+                <span className={`w-3 h-3 rounded-full absolute right-0 bottom-0 border-2 bg-[#23a55a] border-[#17181d] `} />
+              )}
             </div>
             )
           ) : (
-            <div className='relative '>
+            <div className='relative h-8 w-8 '>
               <img
                 src={otherUser?.avatar || UserPfp}
                 alt='User profile picture'
@@ -339,187 +360,230 @@ const Chat = () => {
           )}
         </div>
       </header>
-
-      <div className='flex-1 overflow-y-auto py-5 [scrollbar-color:#1a1b20_transparent] [scrollbar-width:thin]'>
         
-        {conversation?.isGroup ? (
-          <div className='px-5 mb-4 pb-7 space-y-2 border-b border-[var(--border-color)] '>
+      <div className='flex h-full pt-14 '>
 
-            <div className='relative h-24 w-28 mb-4'>
-              {conversation.groupAvatar ? (
-                <div className='relative '>
-                  <img
-                    src={conversation?.groupAvatar}
-                    alt='Group profile'
-                    className='h-26 w-26 rounded-full object-cover'
-                  />
+        <div className='flex flex-col justify-between h-full flex-1 '>
+          <div className='overflow-y-auto [scrollbar-color:#1a1b20_transparent] [scrollbar-width:thin] '>
 
-                  {hasOtherOnlineUsers && (
-                    <span className={`w-3 h-3 rounded-full absolute -bottom-2 right-0 border-2 bg-[#23a55a] border-[#17181d] `} />
+            {/* messages header */}
+            {conversation?.isGroup ? (
+              <div className='px-5 py-6 space-y-2 border-b border-[var(--border-color)] '>
+              
+                <div className=' h-24 w-28 mb-4'>
+                  {conversation.groupAvatar ? (
+                    <div className='relative h-24 w-28 '>
+                      <img
+                        src={conversation?.groupAvatar}
+                        alt='Group profile'
+                        className='h-26 w-26 rounded-full object-cover'
+                      />
+                    </div>
+                  ) : (
+                    <div className="relative h-24 w-28 shrink-0 rounded-full ">
+                      {groupPreviewAvatars.map((participant, index) => (
+                          <img 
+                            key={participant.id}
+                            src={participant.avatar || UserPfp}
+                            alt={`${participant.username} profile picture`}
+                            className={`absolute rounded-full object-cover ${
+                              index === 0
+                                ? 'left-0 top-0 h-16 w-16 bg-[#5865f2]'
+                                : 'left-7 top-7 h-16 w-16 border-2 border-[var(--outlet-color)]'
+                            }`}
+                          />
+                      ))}
+                    </div>
                   )}
                 </div>
-              ) : (
-                <div className="relative h-auto w-auto shrink-0 rounded-full ">
-                  {groupPreviewAvatars.map((participant, index) => (
-                    <div>
-                      <img 
-                        key={participant.id}
-                        src={participant.avatar || UserPfp}
-                        alt={`${participant.username} profile picture`}
-                        className={`absolute rounded-full object-cover ${
-                          index === 0
-                            ? 'left-0 top-0 h-8 w-8 bg-[#5865f2]'
-                            : 'left-2 top-2 h-8 w-8 border-2 border-[var(--outlet-color)]'
-                        }`}
+                
+                <h1 className='text-3xl font-bold '> {conversation?.groupName} </h1>
+                <p> This is the beginning of your direct message history with <span className='font-bold '> {conversation?.groupName} </span> </p>
+                
+                <div className='flex gap-2 my-2'>
+                  <button onClick={() => setAddFriendPopup(true)} className='flex items-center gap-2 px-4 py-2 bg-[var(--primary-color)] hover:bg-[var(--primary-color-hover)] rounded-xl cursor-pointer '>
+                    <FaUserPlus />
+                    Invite friends 
+                  </button>
+                
+                  <button onClick={() => setEditGroupPopup(true)} className='flex items-center gap-2 px-4 py-2 border border-[#363638] bg-[#242328] hover:bg-[#2e2c32] rounded-xl cursor-pointer '> 
+                    <MdModeEdit />
+                    Edit group 
+                  </button>
+                </div>
+                
+                <p className='text-white/80 '>
+                  Created: <span className='text-[#616165] text-sm  '> {convertDate(conversation.createdAt)} </span>
+                </p>
+                
+              </div>
+            ) : (
+              <div className='px-5 my-4 pb-7 space-y-2 border-b border-[var(--border-color))] '>
+
+                <img 
+                  src={otherUser?.avatar || UserPfp} 
+                  alt='User profile picture' 
+                  className='w-[75px] h-[75px] rounded-full ' 
+                />
+
+                <h1 className='text-3xl font-bold '> {otherUser?.username} </h1>
+                <p> This is the beginning of your direct message history with <span className='font-bold '> {otherUser?.username} </span> </p>
+                <span> {convertDate(conversation.createdAt)} </span>
+            
+              </div>
+            )}
+
+            {/* Messages */}
+            <div className='h-auto relative '>
+              {messages.map((message) => (
+                  <div key={message.id} className={`group flex gap-3 rounded-[8px] py-2 transition hover:bg-[var(--background-hover)] `}>
+
+                    <div className={`flex items-start max-w-[70%] gap-4 rounded-[8px] px-5 py-2 text-[#f2f3f5]  `} >
+                      <img
+                        src={message.sender.avatar}
+                        alt={`${message.sender.username} avatar`}
+                        className='h-9 w-9 mt-1 shrink-0 rounded-full object-cover'
                       />
 
-                      {hasOtherOnlineUsers && (
-                        <span className={`w-3 h-3 rounded-full absolute -bottom-0 right-0.5 border-2 bg-[#23a55a] border-[#17181d] `} />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                      <div>
+                        {message.sender.username && (
+                          <div className={`flex items-center gap-2`}>
+                            <p className='mb-1 text-md font-semibold text-[var(--text-color)]'>
+                              {message.sender.username}
+                            </p>
+                        
+                            <p className='text-xs text-gray-500 mb-1 '>
+                              {convertDate(message.createdAt)}
+                            </p>
+                          </div>
+                        )}
 
-            <h1 className='text-3xl font-bold '> {conversation?.groupName} </h1>
-            <p> This is the beginning of your direct message history with <span className='font-bold '> {conversation?.groupName} </span> </p>
-          
-            <div className='flex gap-2 my-2'>
-              <button className='flex items-center gap-2 px-4 py-2 bg-[var(--primary-color)] hover:bg-[var(--primary-color-hover)] rounded-xl cursor-pointer '>
-                <FaUserPlus />
-                Invite friends 
-              </button>
-
-              <button onClick={() => setEditGroupPopup(true)} className='flex items-center gap-2 px-4 py-2 bg-[var(--background-secondary-color)] hover:bg-[var(--background-secondary-color-hover)] rounded-xl cursor-pointer '> 
-                <MdModeEdit />
-                Edit group 
-              </button>
-            </div>
-
-            <span> {convertDate(conversation.createdAt)} </span>
-
-          </div>
-        ) : (
-          <div className='px-5 my-4 pb-7 space-y-2 border-b border-[var(--border-color))] '>
-            <img 
-              src={otherUser?.avatar || UserPfp} 
-              alt='User profile picture' 
-              className='w-[75px] h-[75px] rounded-full ' 
-            />
-
-            <h1 className='text-3xl font-bold '> {otherUser?.username} </h1>
-
-            <p> This is the beginning of your direct message history with <span className='font-bold '> {otherUser?.username} </span> </p>
-          
-            <span> {convertDate(conversation.createdAt)} </span>
-
-          </div>
-        )}
-
-        <div className='space-y-1'>
-          {messages.map((message) => {
-            const isMine = message.sender.id === currentUser
-
-            return (
-              <div
-                key={message.id}
-                className={`group flex gap-3 rounded-[8px] py-2 transition hover:bg-[var(--background-hover)] ${isMine ? "justify-end " : ""} `}
-              >
-                <div className={`flex max-w-[70%] gap-4 rounded-[8px] px-5 py-2 text-[#f2f3f5] ${isMine ? "flex-row-reverse " : ""} `} >
-                  
-                  <img
-                    src={message.sender.avatar}
-                    alt={`${message.sender.username} avatar`}
-                    className='h-9 w-9 mt-1 shrink-0 rounded-full object-cover'
-                  />
-
-                  <div className={`${isMine ? "text-right " : ""} `}>
-                    {message.sender.username && (
-                      <div className={`flex items-center gap-2 ${isMine ? "flex-row-reverse " : ""}  `}>
-                        <p className='mb-1 text-md font-semibold text-[var(--text-color)]'>
-                          {message.sender.username}
-                        </p>
-
-                        <p className='text-xs text-gray-500 mb-1 '>
-                          {convertDate(message.createdAt)}
+                        <p className='break-words font-medium text-[15px] leading-5'>
+                          {message.content}
                         </p>
                       </div>
-                    )}
 
-                    <p className='break-words font-medium text-[15px] leading-5'>
-                      {message.content}
-                    </p>
+                    </div>
+
                   </div>
+                ))}
 
-                </div>
+              <div ref={messagesEndRef} />
+
+              <div>
+                {isSomeoneTyping && (
+                  <p className="text-sm text-gray-400 px-5 pb-2">
+                    {otherUser?.username} is typing...
+                  </p>
+                )}
               </div>
-            )
-          })}
-          <div ref={messagesEndRef} />
+            </div>
+
+          </div>
+
+          {/* input texting div */}
+          <div className='shrink-0 w-full '>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleSendMessage(sendMessagePayload.content, 'text')
+              }}
+              className='flex min-h-12 items-center rounded-[8px] bg-[#222327] px-4 py-2 m-2 mr-2'
+            >
+              <input 
+                type='text'
+                value={sendMessagePayload.content}
+                onChange={(e) => {
+                
+                  const value = e.target.value
+                
+                  setSendMessagePayload((payload) => ({
+                    ...payload,
+                    content: value,
+                    type: 'text'
+                  }))
+                
+                  if(value.trim()) {
+                    emitTypingStart()
+                  }else{
+                    emitTypingStop()
+                  }
+                
+                  if(typingTimeoutRef.current) {
+                    clearTimeout(typingTimeoutRef.current)
+                  }
+                
+                  typingTimeoutRef.current = setTimeout(() => {
+                    emitTypingStop()
+                  }, 1500)
+                
+                }}
+                className='h-12 w-full bg-transparent text-[15px] text-[#f2f3f5] outline-none placeholder:text-[#949ba4]'
+                placeholder={`Message @${chatTitle || 'conversation'}`}
+              />
+
+              <button
+                type='submit'
+                disabled={!sendMessagePayload.content.trim() || sendMessageMutation.isPending}
+                className='ml-3 h-9 cursor-pointer rounded-[8px] bg-[#5865f2] px-4 text-sm font-semibold text-white transition hover:bg-[#4752c4] disabled:cursor-not-allowed disabled:bg-[#4a4d55] disabled:text-[#949ba4]'
+              >
+                Send
+              </button>
+
+            </form>
+          </div>
         </div>
+
+        {/* right sidebar */}
+        <div className='w-[320px] h-full bg-[#252429] border-l border-[var(--border-color)] p-4 '>
+          {conversation.isGroup ? (
+            <div>
+              <h2 className='text-gray-400 text-sm mb-2 '> Members: {conversation.participants.length} </h2>
+
+              <div className='space-y-3 '>
+              
+                {conversation.participants.map((participant) => (
+                  <div className='flex items-center gap-2 ' key={participant.id}>
+
+                    <div className='relative '>
+                      <img className='w-10 h-10 rounded-full' src={participant.avatar || UserPfp} alt='User profile picture' />
+                      
+                      {participant?.isOnline && (
+                        <span className={`w-3 h-3 rounded-full absolute -bottom-0 right-0 border-2 bg-[#23a55a] border-[#17181d] `} />
+                      )}
+                    </div>
+
+                    <h5> {participant.username} </h5>
+
+                  </div>
+                ))}
+
+              </div>
+
+            </div>
+          ) : (
+            <div>
+
+              <div className='relative w-20 h-20 '>
+                <img
+                  src={otherUser?.avatar || UserPfp}
+                  alt='User profile picture'
+                  className='w-20 h-20 rounded-full object-cover'
+                />
+
+                <span className={`w-4 h-4 rounded-full absolute bottom-0 right-1 border-2  ${otherUser?.isOnline ? "bg-[#23a55a] border-[#17181d]" : "bg-[#17181d] border-[#858585]"} `} />
+              </div>
+
+              <h1 className=' '> {otherUser?.username} </h1>
+              
+            </div>
+          )}
+        </div>
+
       </div>
 
-      <div>
-        {isSomeoneTyping && (
-          <p className="text-sm text-gray-400 px-5 pb-2">
-            {otherUser?.username} is typing...
-          </p>
-        )}
-      </div>
-
-      <footer className='shrink-0 bg-[var(--outlet-color)] px-5 pb-6 pt-3'>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            handleSendMessage(sendMessagePayload.content, 'text')
-          }}
-          className='flex min-h-12 items-center rounded-[8px] bg-[#383a40] px-4'
-        >
-          <input 
-            type='text'
-            value={sendMessagePayload.content}
-            onChange={(e) => {
-
-              const value = e.target.value
-
-              setSendMessagePayload((payload) => ({
-                ...payload,
-                content: value,
-                type: 'text'
-              }))
-
-              if(value.trim()) {
-                emitTypingStart()
-              }else{
-                emitTypingStop()
-              }
-
-              if(typingTimeoutRef.current) {
-                clearTimeout(typingTimeoutRef.current)
-              }
-
-              typingTimeoutRef.current = setTimeout(() => {
-                emitTypingStop()
-              }, 1500)
-
-            }}
-            className='h-12 w-full bg-transparent text-[15px] text-[#f2f3f5] outline-none placeholder:text-[#949ba4]'
-            placeholder={`Message @${chatTitle || 'conversation'}`}
-          />
-
-          <button
-            type='submit'
-            disabled={!sendMessagePayload.content.trim() || sendMessageMutation.isPending}
-            className='ml-3 h-9 cursor-pointer rounded-[8px] bg-[#5865f2] px-4 text-sm font-semibold text-white transition hover:bg-[#4752c4] disabled:cursor-not-allowed disabled:bg-[#4a4d55] disabled:text-[#949ba4]'
-          >
-            Send
-          </button>
-        </form>
-      </footer>
 
       {/* Popup for editing group */}
-      
       {editGroupPopup && (
         <div onClick={() => setEditGroupPopup(false)} className='fixed inset-0 w-full h-full bg-black/55 flex justify-center items-center '>
           <div onClick={(e) => e.stopPropagation()} className='rounded-xl bg-[#252429] p-6 max-w-md w-full min-h-30 h-auto '>
@@ -570,8 +634,142 @@ const Chat = () => {
         </div>
       )}
 
+      {/* Popup for adding friends to the group */}
+      {addFriendPopup && (
+        <div onClick={() => setAddFriendPopup(false)} className='fixed inset-0 z-99 flex h-full w-full items-center justify-center bg-black/55 px-4 backdrop-blur-sm'>
+          <div onClick={(e) => e.stopPropagation()} className='flex max-h-[760px] min-h-[520px] w-full max-w-[520px] flex-col overflow-hidden rounded-[8px] border border-[#30313a] bg-[#17181d] shadow-2xl shadow-black/50'>
+
+            <div className='flex items-start justify-between gap-4 border-b border-[#2a2b32] px-5 py-5'>
+              <div>
+                <h1 className='text-xl font-semibold leading-7 text-white'>Add friends</h1>
+                <p className='mt-1 text-sm leading-5 text-[#a6a8b0]'>
+                  Pick a friend and add them to chat.
+                </p>
+              </div>
+
+              <button
+                type='button'
+                onClick={() => setAddFriendPopup(false)}
+                aria-label='Close start conversation popup'
+                className='grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-[8px] text-[#b9bbc2] transition hover:bg-[#25262d] hover:text-white'
+              >
+                <IoClose className='text-[22px]' />
+              </button>
+            </div>
+
+            <div className='border-b border-[#2a2b32] px-5 py-4'>
+              <label className='relative block'>
+                <IoSearch className='pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[20px] text-[#b9bbc2]' />
+                <input
+                  type='search'
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder='Search friends'
+                  className='h-11 w-full rounded-[8px] border border-[#30313a] bg-[#111216] pl-11 pr-4 text-[15px] text-white outline-none transition placeholder:text-[#81848e] focus:border-[#5865f2]'
+                />
+              </label>
+            </div>
+
+            <div className='flex-1 overflow-y-auto px-3 py-3 [scrollbar-color:#6e707a_transparent] [scrollbar-width:thin]'>
+              {friendsLoading ? (
+                <div className='flex h-full items-center justify-center'>
+                  <p className='text-sm font-medium text-[#bfc1c8]'>Loading friends...</p>
+                </div>
+              ) : friendsData?.length === 0 ? (
+                <div className='flex h-full flex-col items-center justify-center px-8 text-center'>
+
+                  <div className='mb-4 grid h-14 w-14 place-items-center rounded-[8px] bg-[#202128]'>
+                    <BsPersonRaisedHand className='text-[25px] text-[#a6a8b0]' />
+                  </div>
+
+                  <h2 className='text-base font-semibold text-white'>No friends found</h2>
+                  <p className='mt-1 max-w-[260px] text-sm leading-5 text-[#9da0a8]'>
+                    Try another search or add friends before starting a conversation.
+                  </p>
+                  
+                </div>
+              ) : (
+                <div className='space-y-1'>
+                  {friendsNotInChat?.map((friend) => (
+                    <div
+                      key={friend.id}
+                      className='flex min-h-[64px] w-full cursor-pointer items-center justify-between gap-3 rounded-[8px] px-3 text-left transition hover:bg-[#22232a]'
+                    >
+                      <div className='flex min-w-0 items-center gap-3'>
+                        
+                        <div className='relative shrink-0'>
+                          <img
+                            src={friend.avatar || UserPfp}
+                            alt={`${friend.username} profile picture`}
+                            className='h-10 w-10 rounded-full object-cover'
+                          />
+                          <span
+                            className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-[3px] border-[#17181d] ${
+                              friend.isOnline ? 'bg-[#23a55a]' : 'bg-[#17181d] ring-2 ring-[#8c8f99]'
+                            }`}
+                          />
+                        </div>
+
+                        <div className='min-w-0'>
+                          <h3 className='truncate text-[15px] font-semibold text-white'>{friend.username}</h3>
+                          <p className='text-[13px] text-[#9da0a8]'>{friend.isOnline ? 'Online' : 'Offline'}</p>
+                        </div>
+                      </div>
+
+                      <input
+                        type='checkbox'
+                        value={friend.id}
+                        checked={selectedFriendIds.includes(friend.id)}
+                        // onChange={(e) => handleFriendCheckbox(friend.id, e.target.checked)}
+                        className='h-4 w-4 cursor-pointer accent-[#5865f2]'
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {selectedFriendIds.length > 1 && (
+              <div className='border-t border-[#2a2b32] px-5 py-4'>
+                <input
+                  value={groupName}
+                  onChange={(e) => setGroupName(e.target.value)}
+                  placeholder="Group name"
+                  className='h-11 w-full rounded-[8px] border border-[#30313a] bg-[#111216] px-4 text-[15px] text-white outline-none transition placeholder:text-[#81848e] focus:border-[#5865f2]'
+                />
+              </div>
+            )}
+
+            <div className='flex items-center justify-between gap-3 border-t border-[#2a2b32] bg-[#14151a] px-5 py-4'>
+              <p className='text-sm text-[#9da0a8]'>
+                {selectedFriendIds.length === 0
+                  ? 'Select friends'
+                  : selectedFriendIds.length === 1
+                    ? 'Start a direct message'
+                    : `${selectedFriendIds.length} friends selected`}
+              </p>
+              
+              {/* <button
+                type='button'
+                onClick={handleSubmit}
+                disabled={!hasSelectedFriends || createConvMutation.isPending || createGroupConvMutation.isPending}
+                className='h-10 cursor-pointer rounded-[8px] bg-[#5865f2] px-5 text-sm font-semibold text-white transition hover:bg-[#4752c4] disabled:cursor-not-allowed disabled:bg-[#363743] disabled:text-[#858894]'
+              >
+                {createConvMutation.isPending || createGroupConvMutation.isPending
+                  ? 'Starting...'
+                  : selectedFriendIds.length > 1 ? 'Create group' : 'Start chat'}
+              </button> */}
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </section>
   )
 }
 
 export default Chat
+
+
+

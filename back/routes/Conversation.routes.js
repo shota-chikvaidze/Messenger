@@ -9,8 +9,8 @@ router.get('/get-conversations', protect, conversationController.getMyConversati
 router.get('/get-conversations-id/:id', protect, conversationController.getConversationById)
 router.post('/create-conversations', protect, conversationController.createConversation)
 router.post('/create-group-conversations', protect, conversationController.createGroupConversations)
-router.post('/add-participant/:id', protect, conversationController.addParticipant)
 router.put('/update-conversation/:id', protect, upload.single('groupAvatar'), handleUploadError, conversationController.updateConversation)
+router.post('/add-participant/:id', protect, conversationController.addParticipant)
 router.delete('/leave-conversation/:id', protect, conversationController.leaveConversation)
 
 module.exports = router 

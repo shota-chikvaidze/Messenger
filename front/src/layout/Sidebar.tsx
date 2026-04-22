@@ -159,9 +159,6 @@ export const Sidebar = () => {
                     className="w-9 h-9 rounded-full cursor-pointer object-cover "
                   />
 
-                  <span className={`w-3 h-3 rounded-full absolute -bottom-0.5 right-0 border-2  ${user?.isOnline ? "bg-[#23a55a] border-[#17181d]" : "bg-[#17181d] border-[#858585]"} `} />
-
-
                   <div className="absolute top-full  opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                     <div className="w-40 mt-2 bg-[var(--background-color)] rounded-xl shadow-lg border border-[var(--border-color)] p-2 backdrop-blur-md">
 
@@ -220,7 +217,7 @@ export const Sidebar = () => {
 
             {conversationLoading ? (
                 <div className='flex justify-center '>
-                  <p className='text-lg font-medium '>Loading...</p>
+                  <p className='text-lg font-medium text-white '>Loading...</p>
                 </div>
               ) : (
                 <>
@@ -275,7 +272,7 @@ export const Sidebar = () => {
                                       />
                                       
                                       {hasOtherOnlineUsers && (
-                                        <span className={`w-3 h-3 rounded-full absolute -bottom-2 right-0 border-2 bg-[#23a55a] border-[#17181d] `} />
+                                        <span className={`w-3 h-3 rounded-full absolute -bottom-1 right-0 border-2 bg-[#23a55a] border-[#17181d] `} />
                                       )}
                                     </div>
                                   ) : (
