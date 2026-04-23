@@ -6,6 +6,7 @@ interface UserPreview {
     username: string
     avatar?: string
     isOnline?: boolean
+    createdAt: string
 }
 interface ConversationType {
     id: string
@@ -53,9 +54,10 @@ interface CreateConversationData {
 }
 
 export interface UpdateConversationPayload {
-    id?: string
+    id: string
     formData: FormData
 }
+
 
 
 export const CreateConvEndpoint = async (payload: CreateConversationPayload): Promise<CreateConversationData> => {
@@ -85,4 +87,15 @@ export const UpdateConversationEndpoint = async ({ id, formData }: UpdateConvers
         }
     })
     return res.data
+}
+
+// export const AddParticipantEndpoint = async ( id: string, payload: AddParticipantPayload) => {
+//   const res = await axios.post(`/conversation/add-participant/${id}`, payload)
+//   return res.data
+// }
+
+
+export const LeaveGroupEndpoint = async (id: string) => {
+  const res = await axios.delete(`/conversation/leave-conversation/${id}`)
+  return res.data
 }

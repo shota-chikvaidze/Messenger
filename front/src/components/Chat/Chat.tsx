@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { GetConversationIdEndpoint, UpdateConversationEndpoint, type UpdateConversationPayload } from '../../api/endpoints/conversation'
+import { GetConversationIdEndpoint, UpdateConversationEndpoint, type UpdateConversationPayload, LeaveGroupEndpoint} from '../../api/endpoints/conversation'
 import { GetMessagesEndpoint, SendMessagesEndpoint, type SendMessagePayload } from '../../api/endpoints/message'
 import { GetFriendsEndpoint } from '../../api/endpoints/friends'
 import { useAuth } from '../../store/useAuth'
@@ -10,15 +10,14 @@ import { socket } from '../../socket/socket'
 import type { MessageType } from '../../api/endpoints/message'
 
 import UserPfp from '../../assets/images/user-pfp.jpg'
+import { showErrorToast, showSuccessToast } from '../../utils/toast'
 import { FaUserPlus } from "react-icons/fa6";
-import { MdModeEdit } from "react-icons/md";
+import { MdModeEdit, MdMoreVert } from "react-icons/md";
 import { FaUserFriends } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
-import { showErrorToast, showSuccessToast } from '../../utils/toast'
-import FriendsIcon from '../../assets/icons/meeting.png'
-import { IoClose, IoSearch } from "react-icons/io5";
+import { IoClose, IoReturnDownBack, IoSearch } from "react-icons/io5";
 import { BsPersonRaisedHand } from "react-icons/bs";
-import { GoGitPullRequest } from "react-icons/go";
+
 
 interface TypingEvent {
   userId: string
@@ -34,10 +33,13 @@ const Chat = () => {
   })
   const [groupName, setGroupName] = useState('')
   const [search, setSearch] = useState('')
+
+  // for adding participants
   const [selectedFriendIds, setSelectedFriendIds] = useState<string[]>([])
   
   const [editGroupPopup, setEditGroupPopup] = useState(false)
   const [addFriendPopup, setAddFriendPopup] = useState(false)
+  const [moreGroupPopup, setMoreGroupPopup] = useState(false)
 
   const [typingUsers, setTypingUsers] = useState<string[]>([])
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -81,8 +83,6 @@ const Chat = () => {
   const otherUser = conversation?.participants.find((user) => user.id !== currentUser)
   const chatTitle = conversation?.isGroup ? conversation.groupName : otherUser?.username
 
-  const hasSelectedFriends = selectedFriendIds.length > 0
-
 
   const sendMessageMutation = useMutation({
     mutationKey: ['send-message'],
@@ -113,9 +113,27 @@ const Chat = () => {
     }
   })
 
+  const leaveConversationMutation = useMutation({
+    mutationKey: ['leave-conversation'],
+    mutationFn: (id: string) => LeaveGroupEndpoint(id),
+    onSuccess: (data) => {
+
+      queryClient.invalidateQueries({ queryKey: ['get-conversation'] })
+      queryClient.invalidateQueries({ queryKey: ['get-conversations'] })
+
+      showSuccessToast(data.message)
+    }
+  })
+
+  const handleLeaveConversation = () => {
+    if(!id) return
+
+    leaveConversationMutation.mutate(id)
+  }
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file) return
+    if (!file || !id) return
 
     const formData = new FormData()
     formData.append('groupAvatar', file)
@@ -128,6 +146,8 @@ const Chat = () => {
   }
 
   const handleUpdateConversation = () => {
+    if(!id) return
+
     const formData = new FormData()
     formData.append('groupName', groupName)
 
@@ -185,12 +205,12 @@ const Chat = () => {
       })
     }
   
-    socket.on('connect', handleConnect)
+    socket.on('connection', handleConnect)
     socket.on('connect_error', handleConnectError)
     socket.on('new_message', handleNewMessage)
   
     return () => {
-      socket.off('connect', handleConnect)
+      socket.off('connection', handleConnect)
       socket.off('connect_error', handleConnectError)
       socket.off('new_message', handleNewMessage)
     }
@@ -267,6 +287,8 @@ const Chat = () => {
   }, [conversation, editGroupPopup])
 
   const convertDate = (date: string) => {
+    if(!date) return
+
     return new Date(date).toLocaleString('en-US', {
       month: 'numeric',
       day: 'numeric',
@@ -297,68 +319,69 @@ const Chat = () => {
   return (
     <section className='relative flex h-screen min-h-0 w-full flex-col overflow-hidden bg-[var(--outlet-color)] text-[#dbdee1]'>
       
-      <header className='absolute w-full flex h-14 shrink-0 items-center gap-3 border-b border-[#1f2026] bg-[var(--outlet-color)] px-5 shadow-sm'>
+      <header className='absolute w-full flex  h-14 shrink-0 items-center gap-3 border-b border-[#1f2026] bg-[var(--outlet-color)] px-5 shadow-sm'>
         
-        <div className='grid h-8 w-8 place-items-center rounded-full text-[15px] font-semibold text-[#b5bac1]'>
-          {conversation?.isGroup ? (
-            conversation.groupAvatar ? (
-              <div className='relative h-8 w-8 '>
-                <img
-                  src={conversation.groupAvatar}
-                  alt='Group profile'
-                  className='h-8 w-8 rounded-full object-cover'
-                />
-                
+          <div className='grid h-8 w-8 place-items-center rounded-full text-[15px] font-semibold text-[#b5bac1]'>
+            {conversation?.isGroup ? (
+              conversation.groupAvatar ? (
+                <div className='relative h-8 w-8 '>
+                  <img
+                    src={conversation.groupAvatar}
+                    alt='Group profile'
+                    className='h-8 w-8 rounded-full object-cover'
+                  />
+
+                  {hasOtherOnlineUsers && (
+                    <span className={`w-3 h-3 rounded-full absolute -bottom-1 right-0 border-2 bg-[#23a55a] border-[#17181d] `} />
+                  )}
+                </div>
+              ) : (
+              <div className='relative h-8 w-8'>
+                {groupPreviewAvatars.map((participant, index) => (
+                  <img 
+                    key={participant.id}
+                    src={participant.avatar || UserPfp}
+                    alt={`${participant.username} profile picture`}
+                    className={`absolute rounded-full object-cover ${
+                      index === 0
+                        ? 'left-0 top-0 h-5 w-5 bg-[#5865f2]'
+                        : 'left-2 top-2 h-5 w-5 border-2 border-[var(--outlet-color)]'
+                    }`}
+                  />
+                ))}
+
                 {hasOtherOnlineUsers && (
-                  <span className={`w-3 h-3 rounded-full absolute -bottom-1 right-0 border-2 bg-[#23a55a] border-[#17181d] `} />
+                  <span className={`w-3 h-3 rounded-full absolute right-0 bottom-0 border-2 bg-[#23a55a] border-[#17181d] `} />
                 )}
               </div>
+              )
             ) : (
-            <div className='relative h-8 w-8'>
-              {groupPreviewAvatars.map((participant, index) => (
-                <img 
-                  key={participant.id}
-                  src={participant.avatar || UserPfp}
-                  alt={`${participant.username} profile picture`}
-                  className={`absolute rounded-full object-cover ${
-                    index === 0
-                      ? 'left-0 top-0 h-5 w-5 bg-[#5865f2]'
-                      : 'left-2 top-2 h-5 w-5 border-2 border-[var(--outlet-color)]'
-                  }`}
+              <div className='relative h-8 w-8 '>
+                <img
+                  src={otherUser?.avatar || UserPfp}
+                  alt='User profile picture'
+                  className='h-8 w-8 rounded-full object-cover'
                 />
-              ))}
 
-              {hasOtherOnlineUsers && (
-                <span className={`w-3 h-3 rounded-full absolute right-0 bottom-0 border-2 bg-[#23a55a] border-[#17181d] `} />
-              )}
-            </div>
-            )
-          ) : (
-            <div className='relative h-8 w-8 '>
-              <img
-                src={otherUser?.avatar || UserPfp}
-                alt='User profile picture'
-                className='h-8 w-8 rounded-full object-cover'
-              />
-      
-              <span className={`w-3 h-3 rounded-full absolute -bottom-0.5 right-0 border-2  ${otherUser?.isOnline ? "bg-[#23a55a] border-[#17181d]" : "bg-[#17181d] border-[#858585]"} `} />
+                <span className={`w-3 h-3 rounded-full absolute -bottom-0.5 right-0 border-2  ${otherUser?.isOnline ? "bg-[#23a55a] border-[#17181d]" : "bg-[#17181d] border-[#858585]"} `} />
 
-            </div>
-          )}
-          
-        </div>
+              </div>
+            )}
 
-        <div className='min-w-0'>
-          <h1 className='truncate text-[16px] font-semibold text-white'>
-            {chatTitle || 'Conversation'}
-          </h1>
+          </div>
 
-          {!conversation.isGroup && (
-            <p className='truncate text-xs text-[#949ba4]'>
-              Direct message
-            </p>
-          )}
-        </div>
+          <div className='min-w-0'>
+            <h1 className='truncate text-[16px] font-semibold text-white'>
+              {chatTitle || 'Conversation'}
+            </h1>
+
+            {!conversation.isGroup && (
+              <p className='truncate text-xs text-[#949ba4]'>
+                Direct message
+              </p>
+            )}
+          </div>
+
       </header>
         
       <div className='flex h-full pt-14 '>
@@ -535,7 +558,7 @@ const Chat = () => {
         </div>
 
         {/* right sidebar */}
-        <div className='w-[320px] h-full bg-[#252429] border-l border-[var(--border-color)] p-4 '>
+        <div className='w-[320px] h-full bg-[#1e1c20] border-l border-[var(--border-color)] p-4 '>
           {conversation.isGroup ? (
             <div>
               <h2 className='text-gray-400 text-sm mb-2 '> Members: {conversation.participants.length} </h2>
@@ -562,19 +585,51 @@ const Chat = () => {
 
             </div>
           ) : (
-            <div>
+            <div className=" rounded-xl w-[280px] text-white shadow-md">
 
-              <div className='relative w-20 h-20 '>
-                <img
-                  src={otherUser?.avatar || UserPfp}
-                  alt='User profile picture'
-                  className='w-20 h-20 rounded-full object-cover'
-                />
+              {/* Avatar + Name */}
+              <div className="flex items-center gap-3">
+                <div className="relative w-16 h-16">
+                  <img
+                    src={otherUser?.avatar || UserPfp}
+                    alt="User profile picture"
+                    className="w-16 h-16 rounded-full object-cover"
+                  />
 
-                <span className={`w-4 h-4 rounded-full absolute bottom-0 right-1 border-2  ${otherUser?.isOnline ? "bg-[#23a55a] border-[#17181d]" : "bg-[#17181d] border-[#858585]"} `} />
+                  <span
+                    className={`w-4 h-4 rounded-full absolute bottom-0 right-0 border-2 ${
+                      otherUser?.isOnline
+                        ? "bg-[#23a55a] border-[#1e1f22]"
+                        : "bg-[#2b2d31] border-[#858585]"
+                    }`}
+                  />
+                </div>
+                  
+                <div>
+                  <h1 className="text-lg font-semibold leading-none">
+                    {otherUser?.username}
+                  </h1>
+                  <p className="text-sm text-gray-400">
+                    @{otherUser?.username}
+                  </p>
+                </div>
               </div>
-
-              <h1 className=' '> {otherUser?.username} </h1>
+                  
+              {/* Divider */}
+              <div className="h-px bg-[#2b2d31] my-4" />
+                  
+              {/* Member Since Card */}
+              <div className="bg-[#2b2d31] rounded-lg p-3">
+                <h4 className="text-xs text-gray-400 uppercase tracking-wide">
+                  Member Since
+                </h4>
+                  
+                {otherUser?.createdAt && (
+                  <p className="text-sm mt-1 font-medium">
+                    {convertDate(otherUser?.createdAt)}
+                  </p>
+                )}
+              </div>
               
             </div>
           )}

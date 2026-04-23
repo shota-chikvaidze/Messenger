@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { GetFriendsEndpoint } from '../api/endpoints/friends'
 import { LogoutEndpoint } from '../api/endpoints/auth'
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../store/useAuth'
 
@@ -12,19 +12,21 @@ import { IoClose, IoSearch } from "react-icons/io5";
 import { BsPersonRaisedHand } from "react-icons/bs";
 import { GoGitPullRequest } from "react-icons/go";
 
+import { RemoveFriendEndpoint } from '../api/endpoints/friends'
 import { CreateConvEndpoint, type CreateConversationPayload, GetConversationEndpoint, CreateGroupConvEndpoint, type CreateGroupConversationPayload } from '../api/endpoints/conversation'
 import { showSuccessToast, showErrorToast } from '../utils/toast'
 
 export const Sidebar = () => {
 
   const [addFriendPopup, setAddFriendPopup] = useState(false)
-
+  const [conversationActions, setConversationActions] = useState<string | null>(null)
   // states for group creation
   const [selectedFriendIds, setSelectedFriendIds] = useState<string[]>([])
   const [groupName, setGroupName] = useState('')
 
   const [search, setSearch] = useState('')
   const user = useAuth((store) => store.user)
+  const qc = useQueryClient()
 
 
   const logoutMutation = useMutation({
@@ -85,6 +87,23 @@ export const Sidebar = () => {
       showErrorToast(error?.response?.data?.message || 'Error Occurred')
     }
   })
+
+  const removeFriendMutation = useMutation({
+    mutationKey: ['remove-friend-mutation'],
+    mutationFn: (id: string) => RemoveFriendEndpoint(id),
+    onSuccess: (data) => {
+      showSuccessToast(data.message || 'Removed friend successfully!')
+      setConversationActions(null)
+      qc.invalidateQueries({ queryKey: ['get-friends'] })
+    },
+    onError: (error: any) => {
+      showErrorToast(error?.response?.data?.message || 'Error Occurred')
+    }
+  })
+
+  const handleRemoveFriend = (id: string) => {
+    removeFriendMutation.mutate(id)
+  }
  
 
   const handleSubmit = () => {
@@ -137,12 +156,35 @@ export const Sidebar = () => {
     setSelectedFriendIds((prev) => prev.filter((id) => id !== friendId))
   }
 
+  // function for closing popup
+  useEffect(() => {
+    if (!conversationActions) return
+
+    const handleOutsideClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+
+      if (target.closest(`[data-more-popup-root="${conversationActions}"]`)) return
+
+      setConversationActions(null)
+    }
+
+    document.addEventListener('mousedown', handleOutsideClick)
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick)
+    }
+  }, [conversationActions])
+
   const conversation = conversations.find((conv) => conv.participants)
 
   const hasOtherOnlineUsers = conversation?.participants.some(
     (participant) => participant.id !== currentUserId && participant.isOnline
   )
 
+  // open or close conversation actions popup
+  const togglePopup = (id: string) => {
+    setConversationActions((currentId) =>  currentId === id ? null : id)
+  }
 
   return (
     <div className='relative'>
@@ -252,6 +294,10 @@ export const Sidebar = () => {
                           const findUserAvatar = friend.participants.filter(user => user.id !== currentUserId)
                           const avatar = findUserAvatar.find(user => user)
 
+                          const otherUser = friend.participants.find(
+  user => user.id !== currentUserId
+)
+
                           const otherParticipants = friend.participants.filter((participants) => participants.id !== currentUserId)
 
                           const groupPreviewAvatars = otherParticipants
@@ -259,60 +305,118 @@ export const Sidebar = () => {
                             .slice(0, 2)
 
                           return (
-                            <Link key={friend.id} to={`/profile/chat/${friend.id}`}>
-                              <div className='flex items-center gap-4 py-2 w-full px-3 cursor-pointer hover:bg-[var(--background-hover)] rounded-lg '>
+                              <Link 
+                                onContextMenu={(e) => {
+                                  e.preventDefault()
+                                  togglePopup(friend.id)
+                                }}
+                                key={friend.id} 
+                                to={`/profile/chat/${friend.id}`}>
 
-                                {friend.isGroup ? (
-                                  friend.groupAvatar ? (
+                                <div className='flex items-center gap-4 py-2 w-full relative px-3 cursor-pointer hover:bg-[var(--background-hover)] rounded-lg '>
+
+                                  {friend.isGroup ? (
+                                    friend.groupAvatar ? (
+                                      <div className='relative '>
+                                        <img
+                                          src={friend?.groupAvatar}
+                                          alt='Group profile'
+                                          className='h-10 w-10 rounded-full object-cover'
+                                        />
+
+                                        {hasOtherOnlineUsers && (
+                                          <span className={`w-3 h-3 rounded-full absolute -bottom-1 right-0 border-2 bg-[#23a55a] border-[#17181d] `} />
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <div className="relative h-10 w-10 shrink-0 rounded-full ">
+                                        {groupPreviewAvatars.map((participant, index) => (
+                                          <div key={participant.id}>
+                                            <img 
+                                              key={participant.id}
+                                              src={participant.avatar || UserPfp}
+                                              alt={`${participant.username} profile picture`}
+                                              className={`absolute rounded-full object-cover ${
+                                                index === 0
+                                                  ? 'left-0 top-0 h-7 w-7 bg-[#5865f2]'
+                                                  : 'left-2 top-2 h-7 w-7 border-2 border-[var(--outlet-color)]'
+                                              }`}
+                                            />
+
+                                            {hasOtherOnlineUsers && (
+                                              <span className={`w-3 h-3 rounded-full absolute -bottom-0 right-0.5 border-2 bg-[#23a55a] border-[#17181d] `} />
+                                            )}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )
+                                  ) : (
                                     <div className='relative '>
                                       <img
-                                        src={friend?.groupAvatar}
-                                        alt='Group profile'
+                                        src={avatar?.avatar || UserPfp}
+                                        alt='User profile picture'
                                         className='h-10 w-10 rounded-full object-cover'
                                       />
-                                      
-                                      {hasOtherOnlineUsers && (
-                                        <span className={`w-3 h-3 rounded-full absolute -bottom-1 right-0 border-2 bg-[#23a55a] border-[#17181d] `} />
-                                      )}
-                                    </div>
-                                  ) : (
-                                    <div className="relative h-10 w-10 shrink-0 rounded-full ">
-                                      {groupPreviewAvatars.map((participant, index) => (
-                                        <div>
-                                          <img 
-                                            key={participant.id}
-                                            src={participant.avatar || UserPfp}
-                                            alt={`${participant.username} profile picture`}
-                                            className={`absolute rounded-full object-cover ${
-                                              index === 0
-                                                ? 'left-0 top-0 h-7 w-7 bg-[#5865f2]'
-                                                : 'left-2 top-2 h-7 w-7 border-2 border-[var(--outlet-color)]'
-                                            }`}
-                                          />
-                                          
-                                          {hasOtherOnlineUsers && (
-                                            <span className={`w-3 h-3 rounded-full absolute -bottom-0 right-0.5 border-2 bg-[#23a55a] border-[#17181d] `} />
-                                          )}
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )
-                                ) : (
-                                  <div className='relative '>
-                                    <img
-                                      src={avatar?.avatar || UserPfp}
-                                      alt='User profile picture'
-                                      className='h-10 w-10 rounded-full object-cover'
-                                    />
-                            
-                                    <span className={`w-3 h-3 rounded-full absolute -bottom-0.5 right-0 border-2  ${avatar?.isOnline ? "bg-[#23a55a] border-[#17181d]" : "bg-[#17181d] border-[#858585]"} `} />
-                                                      
-                                  </div>
-                                )}
 
-                                <p className='text-[var(--text-color)] '> {friend.isGroup ? friend.groupName : avatar?.username} </p>
-                              </div>
+                                      <span className={`w-3 h-3 rounded-full absolute -bottom-0.5 right-0 border-2  ${avatar?.isOnline ? "bg-[#23a55a] border-[#17181d]" : "bg-[#17181d] border-[#858585]"} `} />
+
+                                    </div>
+                                  )}
+
+                                  <p className='text-[var(--text-color)] '> {friend.isGroup ? friend.groupName : avatar?.username} </p>
+                                  
+                                  {conversationActions === friend.id && (
+                                    <div
+                                      onClick={(e) => e.stopPropagation()}
+                                      data-more-popup-root={friend.id}
+                                      className="absolute top-1/2 right-10 z-50 w-56 bg-[#2b2d31] rounded-md shadow-lg border border-[#1e1f22] overflow-hidden"
+                                    >
+                                      <div className="flex flex-col text-sm text-gray-200 p-2 ">
+
+                                        {/* DIRECT MESSAGE */}
+                                        {!friend.isGroup && otherUser?.id && (
+                                          <>
+                                            <button
+                                              type="button"
+                                              onClick={(e) => {
+                                                e.preventDefault()
+                                                handleRemoveFriend(otherUser?.id)
+                                              }}
+                                              disabled={removeFriendMutation.isPending}
+                                              className="flex w-full cursor-pointer items-center rounded-[6px] px-3 py-2 text-left text-[15px] font-semibold text-[#ff6b6b] transition hover:bg-[#2c2d35] hover:text-[#ff8585] disabled:cursor-not-allowed disabled:opacity-60"
+                                            >
+                                              Remove friend
+                                            </button>
+                                          </>
+                                        )}
+
+                                        {/* GROUP */}
+                                        {friend.isGroup && (
+                                          <>
+                                            <button
+                                              // onClick={() => handleEditGroup(friend.id)}
+                                              className="px-3 py-2 text-left hover:bg-[#3a3d43] transition-colors"
+                                            >
+                                              Edit Group
+                                            </button>
+                                        
+                                            <button
+                                              // onClick={() => handleLeaveGroup(friend.id)}
+                                              className="px-3 py-2 text-left hover:bg-[#3a3d43] transition-colors text-red-400"
+                                            >
+                                              Leave Group
+                                            </button>
+                                          </>
+                                        )}
+
+                                      </div>
+                                    </div>
+                                  )}
+
+                                </div>
+
                             </Link>
+                            
                           )
                         })}
                       </div>

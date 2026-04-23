@@ -193,13 +193,13 @@ exports.removeFriend = async (req, res) => {
             return res.status(400).json({message: 'This user is not your friend'})
         }
 
-        await User.findByIdAndUpdate(userId, {
-            friends: { $pull: friendId }
-        })
+await User.findByIdAndUpdate(userId, {
+  $pull: { friends: friendId }
+})
 
-        await User.findByIdAndUpdate(friendId, {
-            friends: { $pull: userId }
-        })
+await User.findByIdAndUpdate(friendId, {
+  $pull: { friends: userId }
+})
         
         res.status(200).json({message: 'friend removed successfully'})
 

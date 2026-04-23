@@ -5,7 +5,8 @@ const formatParticipant = (participant) => ({
     id: participant._id,
     username: participant.username,
     avatar: participant.avatar,
-    isOnline: participant.isOnline
+    isOnline: participant.isOnline,
+    createdAt: participant.createdAt
 })
 
 const formatConversation = (conversation) => ({
@@ -25,7 +26,7 @@ exports.getMyConversations = async (req, res) => {
 
         const conversations = await Conversation.find({ participants: req.user.id })
             .sort({ updatedAt: -1 })
-            .populate("participants", "username avatar isOnline")
+            .populate("participants", "username avatar isOnline createdAt")
         res.status(200).json({
             message: 'conversations fetched successfully',
             conversations: conversations.map(formatConversation)
@@ -42,7 +43,7 @@ exports.getConversationById = async (req, res) => {
         const conversationId = req.params.id
 
         const conversation = await Conversation.findById(conversationId)
-            .populate("participants", "username avatar isOnline")
+            .populate("participants", "username avatar isOnline createdAt")
         if(!conversation){
             return res.status(404).json({message: 'conversation not found'})
         }
@@ -197,7 +198,6 @@ exports.leaveConversation = async (req, res) => {
             res.status(200).json({message: 'Leaved group successfuly'})
         }
 
-
     }catch(err){
         res.status(500).json({message: 'Server error'})
     }
@@ -227,13 +227,13 @@ exports.updateConversation = async (req, res) => {
             return res.status(400).json({ message: 'Nothing to update' })
         }
 
+        if(req.file && conversation.avatarPublicId){
+            await cloudinary.uploader.destroy(conversation.avatarPublicId)
+        }
+
         if(req.file){
             conversation.groupAvatar = req.file.path
             conversation.avatarPublicId = req.file.filename
-        }
-
-        if(req.file && conversation.avatarPublicId){
-            await cloudinary.uploader.destroy(conversation.avatarPublicId)
         }
 
         if(groupName && groupName.trim()){
