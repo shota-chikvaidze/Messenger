@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { GetFriendsEndpoint } from '../api/endpoints/friends'
 import { LogoutEndpoint } from '../api/endpoints/auth'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../store/useAuth'
 
 import FriendsIcon from '../assets/icons/meeting.png'
@@ -12,8 +12,8 @@ import { IoClose, IoSearch } from "react-icons/io5";
 import { BsPersonRaisedHand } from "react-icons/bs";
 import { GoGitPullRequest } from "react-icons/go";
 
-import { RemoveFriendEndpoint } from '../api/endpoints/friends'
-import { CreateConvEndpoint, type CreateConversationPayload, GetConversationEndpoint, CreateGroupConvEndpoint, type CreateGroupConversationPayload } from '../api/endpoints/conversation'
+import { RemoveFriendEndpoint, SendFriendReqEndpoint } from '../api/endpoints/friends'
+import { CreateConvEndpoint, type CreateConversationPayload, GetConversationEndpoint, CreateGroupConvEndpoint, type CreateGroupConversationPayload, LeaveGroupEndpoint } from '../api/endpoints/conversation'
 import { showSuccessToast, showErrorToast } from '../utils/toast'
 
 export const Sidebar = () => {
@@ -27,6 +27,7 @@ export const Sidebar = () => {
   const [search, setSearch] = useState('')
   const user = useAuth((store) => store.user)
   const qc = useQueryClient()
+  const navigate = useNavigate()
 
 
   const logoutMutation = useMutation({
@@ -50,6 +51,7 @@ export const Sidebar = () => {
     showSuccessToast("Logged out successfully")
   }
 
+  // conversations data
   const conversations = conversationData?.conversations || []
 
   
@@ -101,11 +103,53 @@ export const Sidebar = () => {
     }
   })
 
+  const sendRequestMutation = useMutation({
+    mutationKey: ['send-friend-request'],
+    mutationFn: (id: string) => SendFriendReqEndpoint(id),
+    onSuccess: (data) => {
+      showSuccessToast(data?.message || "Friend request sent successfully")
+      
+      setTimeout(() => {
+        setConversationActions(null)
+      }, 500)
+      
+      qc.invalidateQueries({ queryKey: ['get-users'] })
+    },
+    onError: (error: any) => {
+      showErrorToast(error?.response?.data?.message || 'Failed to send friend request')
+    }
+  })
+
+  const leaveConversationMutation = useMutation({
+    mutationKey: ['leave-conversation'],
+    mutationFn: (id: string) => LeaveGroupEndpoint(id),
+    onSuccess: (data) => {
+
+      qc.invalidateQueries({ queryKey: ['get-conversation'] })
+      qc.invalidateQueries({ queryKey: ['get-conversations'] })
+
+      navigate('/profile')
+      showSuccessToast(data.message)
+    }
+  })
+
+  const handleLeaveConversation = (id: string) => {
+    if(!id) return
+
+    leaveConversationMutation.mutate(id)
+  }
+
+  // send friend request handler
+  const handleFriendRequests = (id: string) => {
+    sendRequestMutation.mutate(id)
+  }
+
+  // remove friend handler
   const handleRemoveFriend = (id: string) => {
     removeFriendMutation.mutate(id)
   }
  
-
+  // create direct or group conversations handler
   const handleSubmit = () => {
     if (!currentUserId) {
       showErrorToast('Please sign in again to start a conversation')
@@ -175,10 +219,11 @@ export const Sidebar = () => {
     }
   }, [conversationActions])
 
-  const conversation = conversations.find((conv) => conv.participants)
+  // find other participants
+  const conversation = conversations.map((conv) => conv.participants.find(user => user))
 
-  const hasOtherOnlineUsers = conversation?.participants.some(
-    (participant) => participant.id !== currentUserId && participant.isOnline
+  const hasOtherOnlineUsers = conversation?.some(
+    (participant) => participant?.id !== currentUserId && participant?.isOnline
   )
 
   // open or close conversation actions popup
@@ -295,14 +340,15 @@ export const Sidebar = () => {
                           const avatar = findUserAvatar.find(user => user)
 
                           const otherUser = friend.participants.find(
-  user => user.id !== currentUserId
-)
+                            user => user.id !== currentUserId
+                          )
 
                           const otherParticipants = friend.participants.filter((participants) => participants.id !== currentUserId)
 
                           const groupPreviewAvatars = otherParticipants
                             .filter((participants) => participants.avatar)
                             .slice(0, 2)
+
 
                           return (
                               <Link 
@@ -369,24 +415,41 @@ export const Sidebar = () => {
                                     <div
                                       onClick={(e) => e.stopPropagation()}
                                       data-more-popup-root={friend.id}
-                                      className="absolute top-1/2 right-10 z-50 w-56 bg-[#2b2d31] rounded-md shadow-lg border border-[#1e1f22] overflow-hidden"
+                                      className="absolute top-1/2 right-10 z-50 w-[188px] p-[8px] bg-[#2b2d31] rounded-md shadow-lg border border-[var(--border-color)] overflow-hidden"
                                     >
-                                      <div className="flex flex-col text-sm text-gray-200 p-2 ">
+                                      <div className="flex flex-col text-sm text-gray-200 space-y-1 ">
 
                                         {/* DIRECT MESSAGE */}
                                         {!friend.isGroup && otherUser?.id && (
                                           <>
-                                            <button
-                                              type="button"
-                                              onClick={(e) => {
-                                                e.preventDefault()
-                                                handleRemoveFriend(otherUser?.id)
-                                              }}
-                                              disabled={removeFriendMutation.isPending}
-                                              className="flex w-full cursor-pointer items-center rounded-[6px] px-3 py-2 text-left text-[15px] font-semibold text-[#ff6b6b] transition hover:bg-[#2c2d35] hover:text-[#ff8585] disabled:cursor-not-allowed disabled:opacity-60"
-                                            >
-                                              Remove friend
-                                            </button>
+
+                                            {/* {isFriend ? (
+                                              <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                  e.preventDefault()
+                                                  handleRemoveFriend(otherUser?.id)
+                                                }}
+                                                disabled={removeFriendMutation.isPending}
+                                                className="flex w-full cursor-pointer items-center rounded-[6px] py-2 px-3 text-[14px] font-semibold text-[#ff6b6b] transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+                                              >
+                                                Remove friend
+                                              </button>
+                                            ) : (
+                                              <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                  e.preventDefault()
+                                                  handleFriendRequests(otherUser?.id)
+                                                }}
+                                                disabled={sendRequestMutation.isPending}
+                                                className="flex w-full cursor-pointer items-center rounded-[6px] py-2 px-3 text-[14px] font-semibold transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+                                              >
+                                                add friend
+                                              </button>
+                                            )} */}
+
+                                            
                                           </>
                                         )}
 
@@ -394,15 +457,17 @@ export const Sidebar = () => {
                                         {friend.isGroup && (
                                           <>
                                             <button
-                                              // onClick={() => handleEditGroup(friend.id)}
-                                              className="px-3 py-2 text-left hover:bg-[#3a3d43] transition-colors"
+                                              // onClick={(e) => { e.preventDefault();  }}
+                                              className="py-2 px-3 text-left cursor-pointer flex items-center w-full text-[14px] font-semibold rounded-[6px] hover:bg-white/10 transition-colors"
+
                                             >
                                               Edit Group
                                             </button>
                                         
                                             <button
-                                              // onClick={() => handleLeaveGroup(friend.id)}
-                                              className="px-3 py-2 text-left hover:bg-[#3a3d43] transition-colors text-red-400"
+                                              onClick={(e) => { handleLeaveConversation(friend.id); e.preventDefault() }}
+                                              className="py-2 px-3 text-left cursor-pointer flex items-center w-full text-red-400 text-[14px] font-semibold rounded-[6px] hover:bg-white/10 transition-colors"
+                                              
                                             >
                                               Leave Group
                                             </button>

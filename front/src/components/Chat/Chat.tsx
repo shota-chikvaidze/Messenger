@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { GetConversationIdEndpoint, UpdateConversationEndpoint, type UpdateConversationPayload, LeaveGroupEndpoint} from '../../api/endpoints/conversation'
+import { GetConversationIdEndpoint, UpdateConversationEndpoint, type UpdateConversationPayload } from '../../api/endpoints/conversation'
+import { SendFriendReqEndpoint } from '../../api/endpoints/friends'
 import { GetMessagesEndpoint, SendMessagesEndpoint, type SendMessagePayload } from '../../api/endpoints/message'
 import { GetFriendsEndpoint } from '../../api/endpoints/friends'
 import { useAuth } from '../../store/useAuth'
@@ -53,13 +54,15 @@ const Chat = () => {
   const { data: conversationData, isLoading: conversationLoading } = useQuery({
     queryKey: ['get-conversation', id],
     queryFn: () => GetConversationIdEndpoint(id as string),
-    enabled: Boolean(id)
+    enabled: Boolean(id),
+    retry: false,
   })
 
   const { data: messageData, isLoading: messageLoading } = useQuery({
     queryKey: ['get-messages', id],
     queryFn: () => GetMessagesEndpoint(id as string),
-    enabled: Boolean(id)
+    enabled: Boolean(id),
+    retry: false,
   })
 
   const { data: friendsData, isLoading: friendsLoading } = useQuery({
@@ -113,22 +116,22 @@ const Chat = () => {
     }
   })
 
-  const leaveConversationMutation = useMutation({
-    mutationKey: ['leave-conversation'],
-    mutationFn: (id: string) => LeaveGroupEndpoint(id),
+  const sendRequestMutation = useMutation({
+    mutationKey: ['send-friend-request'],
+    mutationFn: (id: string) => SendFriendReqEndpoint(id),
     onSuccess: (data) => {
-
-      queryClient.invalidateQueries({ queryKey: ['get-conversation'] })
-      queryClient.invalidateQueries({ queryKey: ['get-conversations'] })
-
-      showSuccessToast(data.message)
+      showSuccessToast(data?.message || "Friend request sent successfully")
+      
+      queryClient.invalidateQueries({ queryKey: ['get-users'] })
+    },
+    onError: (error: any) => {
+      showErrorToast(error?.response?.data?.message || 'Failed to send friend request')
     }
   })
-
-  const handleLeaveConversation = () => {
-    if(!id) return
-
-    leaveConversationMutation.mutate(id)
+  
+  // send friend request handler
+  const handleFriendRequests = (id: string) => {
+    sendRequestMutation.mutate(id)
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -312,9 +315,15 @@ const Chat = () => {
   }
 
   if (!conversation) {
-    return <div>Select a conversation</div>
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center ">
+          <p className="text-xl font-medium text-neutral-400">No conversation selected</p>
+          <p className="text-xs mt-1 text-neutral-500">Choose a chat to start messaging</p>
+        </div>
+      </div>
+    )
   }
-
 
   return (
     <section className='relative flex h-screen min-h-0 w-full flex-col overflow-hidden bg-[var(--outlet-color)] text-[#dbdee1]'>
@@ -451,8 +460,19 @@ const Chat = () => {
 
                 <h1 className='text-3xl font-bold '> {otherUser?.username} </h1>
                 <p> This is the beginning of your direct message history with <span className='font-bold '> {otherUser?.username} </span> </p>
+
+                {otherUser && (
+                  <div className='flex gap-2 my-2'>
+                    <button onClick={() => handleFriendRequests(otherUser?.id)} className='flex items-center gap-2 px-4 py-2 border border-[#363638] bg-[#242328] hover:bg-[#2e2c32] rounded-xl cursor-pointer '> 
+                      <MdModeEdit />
+                      Add friend
+                    </button>
+                  </div>
+                )}
+
+
                 <span> {convertDate(conversation.createdAt)} </span>
-            
+
               </div>
             )}
 

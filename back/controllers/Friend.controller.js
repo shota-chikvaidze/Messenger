@@ -161,7 +161,7 @@ exports.getFriends = async (req, res) => {
             match: search && search.trim() !== ''
                 ? { username: { $regex: search.trim(), $options: 'i' } }
                 : {},
-            select: 'username avatar isOnline lastSeen'
+            // select: 'username avatar isOnline lastSeen'
         })
 
         if(!user){
@@ -193,13 +193,13 @@ exports.removeFriend = async (req, res) => {
             return res.status(400).json({message: 'This user is not your friend'})
         }
 
-await User.findByIdAndUpdate(userId, {
-  $pull: { friends: friendId }
-})
+        await User.findByIdAndUpdate(userId, {
+          $pull: { friends: friendId }
+        })
 
-await User.findByIdAndUpdate(friendId, {
-  $pull: { friends: userId }
-})
+        await User.findByIdAndUpdate(friendId, {
+          $pull: { friends: userId }
+        })
         
         res.status(200).json({message: 'friend removed successfully'})
 

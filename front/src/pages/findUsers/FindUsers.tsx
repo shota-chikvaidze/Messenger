@@ -2,7 +2,7 @@ import { useState } from "react"
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { GetUsersEndpoint } from '../../api/endpoints/user'
-import { SendFriendReqEndpoint } from '../../api/endpoints/friends'
+import { SendFriendReqEndpoint, } from '../../api/endpoints/friends'
 import { showErrorToast, showSuccessToast } from '../../utils/toast'
 
 import UserPfp from '../../assets/images/user-pfp.jpg'

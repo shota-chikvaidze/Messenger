@@ -41,11 +41,20 @@ exports.getConversationById = async (req, res) => {
     try{
 
         const conversationId = req.params.id
+        const userId = req.user.id
 
         const conversation = await Conversation.findById(conversationId)
             .populate("participants", "username avatar isOnline createdAt")
         if(!conversation){
             return res.status(404).json({message: 'conversation not found'})
+        }
+
+        const isParticipant = conversation.participants.some(
+            participant => participant._id.toString() === userId
+        )
+
+        if(!isParticipant) {
+          return res.status(403).json({ message: 'Access denied' })
         }
 
         res.status(200).json({
@@ -195,7 +204,7 @@ exports.leaveConversation = async (req, res) => {
             res.status(200).json({message: 'Group removed'})
         }else{
             await Conversation.findByIdAndUpdate(conversationId, { $pull: { participants: userId }  })
-            res.status(200).json({message: 'Leaved group successfuly'})
+            res.status(200).json({message: 'left group successfully'})
         }
 
     }catch(err){
