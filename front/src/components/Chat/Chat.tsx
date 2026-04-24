@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { GetConversationIdEndpoint, UpdateConversationEndpoint, type UpdateConversationPayload } from '../../api/endpoints/conversation'
-import { SendFriendReqEndpoint } from '../../api/endpoints/friends'
 import { GetMessagesEndpoint, SendMessagesEndpoint, type SendMessagePayload } from '../../api/endpoints/message'
+import { RemoveFriendEndpoint, SendFriendReqEndpoint } from '../../api/endpoints/friends'
+
 import { GetFriendsEndpoint } from '../../api/endpoints/friends'
 import { useAuth } from '../../store/useAuth'
 
@@ -132,15 +133,36 @@ const Chat = () => {
     mutationKey: ['send-friend-request'],
     mutationFn: (id: string) => SendFriendReqEndpoint(id),
     onSuccess: (data) => {
-      showSuccessToast(data?.message || "Friend request sent successfully")
       
+      setSendRequestPopup(false)
+      showSuccessToast(data?.message || "Friend request sent successfully")
       queryClient.invalidateQueries({ queryKey: ['get-users'] })
+
     },
     onError: (error: any) => {
       showErrorToast(error?.response?.data?.message || 'Failed to send friend request')
     }
   })
-  
+
+  const removeFriendMutation = useMutation({
+    mutationKey: ['remove-friend-mutation'],
+    mutationFn: (id: string) => RemoveFriendEndpoint(id),
+    onSuccess: (data) => {
+      setSendRequestPopup(false)
+      showSuccessToast(data.message || 'Removed friend successfully!')
+      setSendRequestPopup(false)
+      queryClient.invalidateQueries({ queryKey: ['get-friends'] })
+    },
+    onError: (error: any) => {
+      showErrorToast(error?.response?.data?.message || 'Error Occurred')
+    }
+  })
+
+  // remove friend handler
+  const handleRemoveFriend = (id: string) => {
+    removeFriendMutation.mutate(id)
+  }
+
   // send friend request handler
   const handleFriendRequests = (id: string) => {
     sendRequestMutation.mutate(id)
@@ -641,7 +663,7 @@ const Chat = () => {
                         <div className='absolute right-full top-1/2 z-50 -translate-y-1/2 '>
                           <button
                             className='whitespace-nowrap select-none mr-3 cursor-pointer rounded-[8px] border border-[#3a3b42] bg-[#25262d] hover:bg-[#2f3037] px-3.5 py-2 text-sm font-semibold text-[#f2f3f5] shadow-xl shadow-black/40'
-                            onClick={() => handleFriendRequests(otherUser?.id)}
+                            onClick={() => handleRemoveFriend(otherUser?.id)}
                           >
                             Remove friend
                           </button>
@@ -651,13 +673,18 @@ const Chat = () => {
                     </div>
                   ) : (
                     <div className='relative group '>
-                      <IoPersonAddSharp className='w-8 h-8 p-2 hover:bg-white/10 rounded-md cursor-pointer ' />
-                  
-                      <div className='pointer-events-none absolute left-1/2 top-10 z-50 hidden -translate-x-1/2 group-hover:block'>
-                        <p className='whitespace-nowrap rounded-[8px] border border-[#3a3b42] bg-[#25262d] px-3.5 py-2 text-sm font-semibold text-[#f2f3f5] shadow-xl shadow-black/40'>
-                          Add friend
-                        </p>
-                      </div>
+                      <IoPersonAddSharp onClick={() => setSendRequestPopup(prev => !prev)} className='w-8 h-8 p-2 hover:bg-white/10 rounded-md cursor-pointer ' />
+
+                      {sendRequestPopup && otherUser && (
+                        <div className='absolute right-full top-1/2 z-50 -translate-y-1/2 '>
+                          <button
+                            className='whitespace-nowrap select-none mr-3 cursor-pointer rounded-[8px] border border-[#3a3b42] bg-[#25262d] hover:bg-[#2f3037] px-3.5 py-2 text-sm font-semibold text-[#f2f3f5] shadow-xl shadow-black/40'
+                            onClick={() => handleFriendRequests(otherUser?.id)}
+                          >
+                            Add friend
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
