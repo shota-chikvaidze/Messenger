@@ -199,13 +199,33 @@ exports.leaveConversation = async (req, res) => {
             return res.status(403).json({message: 'User doesnot not exists in this chat'})
         }
 
-        if(conversation.groupAdmin === userId){
-            await Conversation.findByIdAndDelete(conversationId)
-            res.status(200).json({message: 'Group removed'})
-        }else{
-            await Conversation.findByIdAndUpdate(conversationId, { $pull: { participants: userId }  })
-            res.status(200).json({message: 'left group successfully'})
+        if(conversation.isGroup === false) {
+            return res.status(400).json({message: "Cannot use leave group behavior"})
         }
+
+        const remainingParticipants = conversation.participants.filter(
+            participant => participant.toString() !== userId
+        )
+
+        if(remainingParticipants.length === 0){
+            await Conversation.findByIdAndDelete(conversationId)
+            return res.status(200).json({message: 'Group removed'})
+        }
+
+        conversation.participants = remainingParticipants
+
+        if(conversation.groupAdmin?.toString() === userId) {
+            conversation.groupAdmin = remainingParticipants[0]
+        }
+
+        await conversation.save()
+
+        const populated = await conversation.populate('participants', 'username avatar isOnline createdAt')
+
+        res.status(200).json({
+            message: 'left group successfully',
+            conversation: formatConversation(populated)
+        })
 
     }catch(err){
         res.status(500).json({message: 'Server error'})

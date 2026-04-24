@@ -1,6 +1,8 @@
 const User = require('../models/User')
 const Conversation = require('../models/Conversation')
 
+const activeUserSockets = new Map()
+
 exports.registerPresenceHandlers = async (io, socket) => {
     
     const joinRooms = async () => {
@@ -9,21 +11,40 @@ exports.registerPresenceHandlers = async (io, socket) => {
         })
         conversations.forEach(c => socket.join(c._id.toString()))
 
-        await User.findByIdAndUpdate(socket.user.id, { isOnline: true })
-        socket.broadcast.emit('user_online', { userId: socket.user.id })
+        const userId = socket.user.id
+        const connectionCount = activeUserSockets.get(userId) || 0
+        activeUserSockets.set(userId, connectionCount + 1)
+
+        if (connectionCount === 0) {
+            await User.findByIdAndUpdate(userId, { isOnline: true })
+            socket.broadcast.emit('user_online', { userId })
+        }
     }
 
     joinRooms()
 
     socket.on('disconnect', async () => {
-        await User.findByIdAndUpdate(socket.user.id, { 
+        const userId = socket.user.id
+        const connectionCount = activeUserSockets.get(userId) || 0
+        const nextConnectionCount = Math.max(connectionCount - 1, 0)
+
+        if (nextConnectionCount > 0) {
+            activeUserSockets.set(userId, nextConnectionCount)
+            return
+        }
+
+        activeUserSockets.delete(userId)
+
+        const lastSeen = new Date()
+
+        await User.findByIdAndUpdate(userId, { 
             isOnline: false, 
-            lastSeen: new Date()  
+            lastSeen  
         })
         
         socket.broadcast.emit('user_offline', { 
-            userId: socket.user.id, 
-            lastSeen: new Date() 
+            userId, 
+            lastSeen 
         })
     })
 

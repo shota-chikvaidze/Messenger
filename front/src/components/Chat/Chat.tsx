@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { GetConversationIdEndpoint, UpdateConversationEndpoint, type UpdateConversationPayload } from '../../api/endpoints/conversation'
 import { SendFriendReqEndpoint } from '../../api/endpoints/friends'
@@ -13,10 +13,10 @@ import type { MessageType } from '../../api/endpoints/message'
 import UserPfp from '../../assets/images/user-pfp.jpg'
 import { showErrorToast, showSuccessToast } from '../../utils/toast'
 import { FaUserPlus } from "react-icons/fa6";
-import { MdModeEdit, MdMoreVert } from "react-icons/md";
+import { MdModeEdit } from "react-icons/md";
 import { FaUserFriends } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
-import { IoClose, IoReturnDownBack, IoSearch } from "react-icons/io5";
+import { IoClose, IoSearch, IoPersonAddSharp, IoPersonRemoveSharp  } from "react-icons/io5";
 import { BsPersonRaisedHand } from "react-icons/bs";
 
 
@@ -33,6 +33,7 @@ const Chat = () => {
     type: 'text'
   })
   const [groupName, setGroupName] = useState('')
+  // search state for adding/inviting friends on popup 
   const [search, setSearch] = useState('')
 
   // for adding participants
@@ -40,13 +41,14 @@ const Chat = () => {
   
   const [editGroupPopup, setEditGroupPopup] = useState(false)
   const [addFriendPopup, setAddFriendPopup] = useState(false)
-  const [moreGroupPopup, setMoreGroupPopup] = useState(false)
+  const [sendRequestPopup, setSendRequestPopup] = useState(false)
 
   const [typingUsers, setTypingUsers] = useState<string[]>([])
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isTypingRef = useRef(false)
 
   const { id } = useParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const user = useAuth((store) => store.user)
   const queryClient = useQueryClient()
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
@@ -85,7 +87,17 @@ const Chat = () => {
   const currentUser = user?.id
   const otherUser = conversation?.participants.find((user) => user.id !== currentUser)
   const chatTitle = conversation?.isGroup ? conversation.groupName : otherUser?.username
+  const isFriend = friendsData?.some((friend) => friend.id === otherUser?.id)
 
+  const closeEditGroupPopup = () => {
+    setEditGroupPopup(false)
+
+    if (!searchParams.has('editGroup')) return
+
+    const nextSearchParams = new URLSearchParams(searchParams)
+    nextSearchParams.delete('editGroup')
+    setSearchParams(nextSearchParams, { replace: true })
+  }
 
   const sendMessageMutation = useMutation({
     mutationKey: ['send-message'],
@@ -109,7 +121,7 @@ const Chat = () => {
       queryClient.invalidateQueries({ queryKey: ['get-conversations'] })
       
       showSuccessToast(data?.message || "Conversation updated!")
-      setEditGroupPopup(false)
+      closeEditGroupPopup()
     },
     onError: (err: any) => {
       showErrorToast(err?.response?.data?.message || 'Update failed')
@@ -208,12 +220,12 @@ const Chat = () => {
       })
     }
   
-    socket.on('connection', handleConnect)
+    socket.on('connect', handleConnect)
     socket.on('connect_error', handleConnectError)
     socket.on('new_message', handleNewMessage)
   
     return () => {
-      socket.off('connection', handleConnect)
+      socket.off('connect', handleConnect)
       socket.off('connect_error', handleConnectError)
       socket.off('new_message', handleNewMessage)
     }
@@ -282,12 +294,18 @@ const Chat = () => {
 
   // if group username found fill the edit field
   useEffect(() => {
-
     if(conversation?.groupName){
       setGroupName(conversation.groupName || '')
     }
-
   }, [conversation, editGroupPopup])
+
+  
+  useEffect(() => {
+    if(searchParams.get('editGroup') === 'true' && conversation?.isGroup) {
+      setEditGroupPopup(true)
+    }
+  }, [conversation?.isGroup, searchParams])
+
 
   const convertDate = (date: string) => {
     if(!date) return
@@ -302,9 +320,11 @@ const Chat = () => {
   }
 
   // for avatars
-  const otherParticipants = conversation?.participants.filter((participants) => participants.id !== currentUser)
-  const groupPreviewAvatars = otherParticipants
-    ?.slice(0, 2) || []
+  const groupPreviewAvatars = conversation?.participants
+    ? [...conversation.participants]
+        .sort((first, second) => `${conversation.id}:${first.id}`.localeCompare(`${conversation.id}:${second.id}`))
+        .slice(0, 2)
+    : []
 
   const hasOtherOnlineUsers = conversation?.participants.some(
     (participant) => participant.id !== currentUser && participant.isOnline
@@ -328,8 +348,9 @@ const Chat = () => {
   return (
     <section className='relative flex h-screen min-h-0 w-full flex-col overflow-hidden bg-[var(--outlet-color)] text-[#dbdee1]'>
       
-      <header className='absolute w-full flex  h-14 shrink-0 items-center gap-3 border-b border-[#1f2026] bg-[var(--outlet-color)] px-5 shadow-sm'>
-        
+      <header className='absolute shrink-0 w-full flex items-center gap-10 h-14 border-b border-[#1f2026] bg-[var(--outlet-color)] px-5 shadow-sm'>
+          
+        <div className='flex items-center gap-3 '>
           <div className='grid h-8 w-8 place-items-center rounded-full text-[15px] font-semibold text-[#b5bac1]'>
             {conversation?.isGroup ? (
               conversation.groupAvatar ? (
@@ -390,6 +411,7 @@ const Chat = () => {
               </p>
             )}
           </div>
+        </div>
 
       </header>
         
@@ -461,7 +483,7 @@ const Chat = () => {
                 <h1 className='text-3xl font-bold '> {otherUser?.username} </h1>
                 <p> This is the beginning of your direct message history with <span className='font-bold '> {otherUser?.username} </span> </p>
 
-                {otherUser && (
+                {!isFriend && otherUser && (
                   <div className='flex gap-2 my-2'>
                     <button onClick={() => handleFriendRequests(otherUser?.id)} className='flex items-center gap-2 px-4 py-2 border border-[#363638] bg-[#242328] hover:bg-[#2e2c32] rounded-xl cursor-pointer '> 
                       <MdModeEdit />
@@ -578,9 +600,9 @@ const Chat = () => {
         </div>
 
         {/* right sidebar */}
-        <div className='w-[320px] h-full bg-[#1e1c20] border-l border-[var(--border-color)] p-4 '>
+        <div className='w-[320px] h-full bg-[#1e1c20] border-l border-[var(--border-color)]  '>
           {conversation.isGroup ? (
-            <div>
+            <div className='p-4'>
               <h2 className='text-gray-400 text-sm mb-2 '> Members: {conversation.participants.length} </h2>
 
               <div className='space-y-3 '>
@@ -605,27 +627,64 @@ const Chat = () => {
 
             </div>
           ) : (
-            <div className=" rounded-xl w-[280px] text-white shadow-md">
+            <div className=" rounded-xl text-white shadow-md">
 
-              {/* Avatar + Name */}
-              <div className="flex items-center gap-3">
-                <div className="relative w-16 h-16">
-                  <img
-                    src={otherUser?.avatar || UserPfp}
-                    alt="User profile picture"
-                    className="w-16 h-16 rounded-full object-cover"
-                  />
 
-                  <span
-                    className={`w-4 h-4 rounded-full absolute bottom-0 right-0 border-2 ${
-                      otherUser?.isOnline
-                        ? "bg-[#23a55a] border-[#1e1f22]"
-                        : "bg-[#2b2d31] border-[#858585]"
-                    }`}
-                  />
-                </div>
-                  
+              <div className="relative w-full h-30 bg-black flex justify-end gap-3 p-3">
+
                 <div>
+                  {isFriend ? (
+                    <div className='relative group '>
+                      <IoPersonRemoveSharp onClick={() => setSendRequestPopup(prev => !prev)} className='w-8 h-8 p-2 hover:bg-white/10 rounded-md cursor-pointer ' />
+                      
+                      {sendRequestPopup && otherUser && (
+                        <div className='absolute right-full top-1/2 z-50 -translate-y-1/2 '>
+                          <button
+                            className='whitespace-nowrap select-none mr-3 cursor-pointer rounded-[8px] border border-[#3a3b42] bg-[#25262d] hover:bg-[#2f3037] px-3.5 py-2 text-sm font-semibold text-[#f2f3f5] shadow-xl shadow-black/40'
+                            onClick={() => handleFriendRequests(otherUser?.id)}
+                          >
+                            Remove friend
+                          </button>
+                        </div>
+                      )}
+
+                    </div>
+                  ) : (
+                    <div className='relative group '>
+                      <IoPersonAddSharp className='w-8 h-8 p-2 hover:bg-white/10 rounded-md cursor-pointer ' />
+                  
+                      <div className='pointer-events-none absolute left-1/2 top-10 z-50 hidden -translate-x-1/2 group-hover:block'>
+                        <p className='whitespace-nowrap rounded-[8px] border border-[#3a3b42] bg-[#25262d] px-3.5 py-2 text-sm font-semibold text-[#f2f3f5] shadow-xl shadow-black/40'>
+                          Add friend
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className='absolute -bottom-5 left-5 '>
+                  <div className="relative border-0 w-18 h-18">
+                    <img
+                      src={otherUser?.avatar || UserPfp}
+                      alt="User profile picture"
+                      className="w-18 h-18 select-none rounded-full object-cover"
+                      />
+
+                    <span
+                      className={`w-4 h-4 rounded-full absolute bottom-0 right-0 border-2 ${
+                        otherUser?.isOnline
+                          ? "bg-[#23a55a] border-[#1e1f22]"
+                          : "bg-[#2b2d31] border-[#858585]"
+                      }`}
+                    />
+                  </div>
+                </div>
+                
+              </div>
+
+              <div className='mt-4 p-4 space-y-2.5'>
+
+                <div className='space-y-1 '>
                   <h1 className="text-lg font-semibold leading-none">
                     {otherUser?.username}
                   </h1>
@@ -633,23 +692,21 @@ const Chat = () => {
                     @{otherUser?.username}
                   </p>
                 </div>
+
+                <div className="bg-[#2b2d31] rounded-lg p-3">
+                  <h4 className="text-xs text-gray-400 uppercase tracking-wide">
+                    Member Since
+                  </h4>
+                      
+                  {otherUser?.createdAt && (
+                    <p className="text-sm mt-1 font-medium">
+                      {convertDate(otherUser?.createdAt)}
+                    </p>
+                  )}
+                </div>
+
               </div>
-                  
-              {/* Divider */}
-              <div className="h-px bg-[#2b2d31] my-4" />
-                  
-              {/* Member Since Card */}
-              <div className="bg-[#2b2d31] rounded-lg p-3">
-                <h4 className="text-xs text-gray-400 uppercase tracking-wide">
-                  Member Since
-                </h4>
-                  
-                {otherUser?.createdAt && (
-                  <p className="text-sm mt-1 font-medium">
-                    {convertDate(otherUser?.createdAt)}
-                  </p>
-                )}
-              </div>
+
               
             </div>
           )}
@@ -660,12 +717,12 @@ const Chat = () => {
 
       {/* Popup for editing group */}
       {editGroupPopup && (
-        <div onClick={() => setEditGroupPopup(false)} className='fixed inset-0 w-full h-full bg-black/55 flex justify-center items-center '>
+        <div onClick={closeEditGroupPopup} className='fixed inset-0 w-full h-full bg-black/55 flex justify-center items-center '>
           <div onClick={(e) => e.stopPropagation()} className='rounded-xl bg-[#252429] p-6 max-w-md w-full min-h-30 h-auto '>
 
             <div className='flex justify-between items-center '>
               <h1 className='text-xl font-bold '>Edit group</h1>
-              <RxCross2 onClick={() => setEditGroupPopup(false)} className='text-2xl ' />
+              <RxCross2 onClick={closeEditGroupPopup} className='text-2xl ' />
             </div>
 
             <label className='relative my-4 flex justify-center'>
@@ -701,7 +758,7 @@ const Chat = () => {
             </div>
 
             <div className='flex justify-center gap-2 w-full mt-4'>
-              <button onClick={() => setEditGroupPopup(false) } className='cursor-pointer w-full flex justify-center items-center py-2 bg-[#2e2d32] hover:bg-[#37363a] rounded-xl ' >Cancel</button>
+              <button onClick={closeEditGroupPopup} className='cursor-pointer w-full flex justify-center items-center py-2 bg-[#2e2d32] hover:bg-[#37363a] rounded-xl ' >Cancel</button>
               <button onClick={handleUpdateConversation} className='w-full flex justify-center items-center py-2 bg-[var(--primary-color)] hover:bg-[var(--primary-color-hover)] rounded-xl cursor-pointer disabled:cursor-not-allowed' disabled={updateConversationMutation.isPending} > {updateConversationMutation.isPending ? "Loading..." : "Save"} </button>
             </div>
 
@@ -845,6 +902,3 @@ const Chat = () => {
 }
 
 export default Chat
-
-
-

@@ -11,12 +11,15 @@ import UserPfp from '../assets/images/user-pfp.jpg'
 import { IoClose, IoSearch } from "react-icons/io5";
 import { BsPersonRaisedHand } from "react-icons/bs";
 import { GoGitPullRequest } from "react-icons/go";
+import { FaUserPlus } from "react-icons/fa";
 
 import { RemoveFriendEndpoint, SendFriendReqEndpoint } from '../api/endpoints/friends'
 import { CreateConvEndpoint, type CreateConversationPayload, GetConversationEndpoint, CreateGroupConvEndpoint, type CreateGroupConversationPayload, LeaveGroupEndpoint } from '../api/endpoints/conversation'
 import { showSuccessToast, showErrorToast } from '../utils/toast'
+import { usePresenceUpdates } from '../hooks/usePresenceUpdates'
 
 export const Sidebar = () => {
+  usePresenceUpdates()
 
   const [addFriendPopup, setAddFriendPopup] = useState(false)
   const [conversationActions, setConversationActions] = useState<string | null>(null)
@@ -219,12 +222,11 @@ export const Sidebar = () => {
     }
   }, [conversationActions])
 
-  // find other participants
-  const conversation = conversations.map((conv) => conv.participants.find(user => user))
-
-  const hasOtherOnlineUsers = conversation?.some(
-    (participant) => participant?.id !== currentUserId && participant?.isOnline
-  )
+  const getGroupPreviewAvatars = (participants: typeof conversations[number]['participants'], conversationId: string) => {
+    return [...participants]
+      .sort((first, second) => `${conversationId}:${first.id}`.localeCompare(`${conversationId}:${second.id}`))
+      .slice(0, 2)
+  }
 
   // open or close conversation actions popup
   const togglePopup = (id: string) => {
@@ -269,8 +271,8 @@ export const Sidebar = () => {
               </div>
 
               <div className='border-b border-[var(--border-color)]'>
-                <button onClick={() => setAddFriendPopup(true)} className='cursor-pointer py-2 px-4 my-3 text-[var(--text-color)] rounded-lg flex justify-center items-center w-full bg-[var(--background-secondary-color)] hover:bg-[var(--background-hover)] '>
-                  Start conversation
+                <button onClick={() => setAddFriendPopup(true)} className='cursor-pointer py-2 px-4 my-3 text-sm text-[var(--text-color)] rounded-lg flex justify-center items-center w-full bg-[var(--background-secondary-color)] hover:bg-[var(--background-hover)] '>
+                  Find or Start conversation
                 </button>
               </div>
 
@@ -342,12 +344,14 @@ export const Sidebar = () => {
                           const otherUser = friend.participants.find(
                             user => user.id !== currentUserId
                           )
+                          const isFriend = friendsData?.some(
+                            (currentFriend) => currentFriend.id === otherUser?.id
+                          )
 
-                          const otherParticipants = friend.participants.filter((participants) => participants.id !== currentUserId)
-
-                          const groupPreviewAvatars = otherParticipants
-                            .filter((participants) => participants.avatar)
-                            .slice(0, 2)
+                          const groupPreviewAvatars = getGroupPreviewAvatars(friend.participants, friend.id)
+                          const hasOtherOnlineUsers = friend.participants.some(
+                            (participant) => participant.id !== currentUserId && participant.isOnline
+                          )
 
 
                           return (
@@ -423,12 +427,12 @@ export const Sidebar = () => {
                                         {!friend.isGroup && otherUser?.id && (
                                           <>
 
-                                            {/* {isFriend ? (
+                                            {isFriend ? (
                                               <button
                                                 type="button"
                                                 onClick={(e) => {
                                                   e.preventDefault()
-                                                  handleRemoveFriend(otherUser?.id)
+                                                  handleRemoveFriend(otherUser.id)
                                                 }}
                                                 disabled={removeFriendMutation.isPending}
                                                 className="flex w-full cursor-pointer items-center rounded-[6px] py-2 px-3 text-[14px] font-semibold text-[#ff6b6b] transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
@@ -440,15 +444,14 @@ export const Sidebar = () => {
                                                 type="button"
                                                 onClick={(e) => {
                                                   e.preventDefault()
-                                                  handleFriendRequests(otherUser?.id)
+                                                  handleFriendRequests(otherUser.id)
                                                 }}
                                                 disabled={sendRequestMutation.isPending}
                                                 className="flex w-full cursor-pointer items-center rounded-[6px] py-2 px-3 text-[14px] font-semibold transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
                                               >
                                                 add friend
                                               </button>
-                                            )} */}
-
+                                            )}
                                             
                                           </>
                                         )}
@@ -457,17 +460,21 @@ export const Sidebar = () => {
                                         {friend.isGroup && (
                                           <>
                                             <button
-                                              // onClick={(e) => { e.preventDefault();  }}
+                                              onClick={(e) => {
+                                                e.preventDefault()
+                                                e.stopPropagation()
+                                                setConversationActions(null)
+                                                navigate(`/profile/chat/${friend.id}?editGroup=true`)
+                                              }}
                                               className="py-2 px-3 text-left cursor-pointer flex items-center w-full text-[14px] font-semibold rounded-[6px] hover:bg-white/10 transition-colors"
-
                                             >
                                               Edit Group
                                             </button>
                                         
                                             <button
                                               onClick={(e) => { handleLeaveConversation(friend.id); e.preventDefault() }}
+                                              disabled={leaveConversationMutation.isPending}
                                               className="py-2 px-3 text-left cursor-pointer flex items-center w-full text-red-400 text-[14px] font-semibold rounded-[6px] hover:bg-white/10 transition-colors"
-                                              
                                             >
                                               Leave Group
                                             </button>
