@@ -9,7 +9,7 @@ import { useAuth } from '../store/useAuth'
 import FriendsIcon from '../assets/icons/meeting.png'
 import UserPfp from '../assets/images/user-pfp.jpg'
 import { IoClose, IoSearch } from "react-icons/io5";
-import { BsPersonRaisedHand } from "react-icons/bs";
+import { BsGearFill, BsHeadphones, BsMicMuteFill, BsPersonRaisedHand } from "react-icons/bs";
 import { GoGitPullRequest } from "react-icons/go";
 import { FaUserPlus } from "react-icons/fa";
 
@@ -235,48 +235,23 @@ export const Sidebar = () => {
 
   return (
     <div className='relative'>
-      <aside className='min-w-[350px] w-auto h-screen  '>
-          <div className='flex flex-col gap-4 h-full border px-3 border-[var(--border-color)] '>
+      <aside className='min-w-[350px] w-auto h-screen'>
+          <div className='relative flex h-full flex-col gap-4 overflow-hidden border border-[var(--border-color)] pb-20 pt-2'>
 
-            <div className='w-full space-y-3 border-b pb-4 border-[var(--border-color)] '>
-
-              <div className='flex justify-between items-center pt-3 '>
-                <div className="relative group">
-                  <img 
-                    src={user?.avatar || UserPfp}
-                    alt="User profile picture"
-                    className="w-9 h-9 rounded-full cursor-pointer object-cover "
-                  />
-
-                  <div className="absolute top-full  opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                    <div className="w-40 mt-2 bg-[var(--background-color)] rounded-xl shadow-lg border border-[var(--border-color)] p-2 backdrop-blur-md">
-
-                      <Link to={'/profile/edit'}>
-                        <button className="w-full text-left px-3 py-2 rounded-lg text-sm text-white cursor-pointer bg-[var(--background-color)] hover:bg-[var(--background-hover)] transition">
-                          Profile
-                        </button>
-                      </Link>
-
-                      <button 
-                        className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-500 cursor-pointer hover:bg-[var(--background-hover)] transition"
-                        onClick={handleLogout}
-                      >
-                        Logout
-                      </button>
-
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-
-              <div className='border-b border-[var(--border-color)]'>
-                <button onClick={() => setAddFriendPopup(true)} className='cursor-pointer py-2 px-4 my-3 text-sm text-[var(--text-color)] rounded-lg flex justify-center items-center w-full bg-[var(--background-secondary-color)] hover:bg-[var(--background-hover)] '>
+            <div className='w-full border-b border-[var(--border-color)] pb-2 px-3'>
+              <div className='relative h-10 border-[var(--border-color)]'>
+                <button 
+                  onClick={() => setAddFriendPopup(true)} 
+                  className='absolute flex w-full cursor-pointer items-center justify-center rounded-lg bg-[var(--background-secondary-color)] px-4 py-2 text-sm text-[var(--text-color)] hover:bg-[var(--background-hover)]'
+                >
                   Find or Start conversation
                 </button>
               </div>
+            </div>
 
-              <div className='space-y-0.5'>
+            <div className='min-h-0 flex-1 overflow-y-auto pr-1 '>
+
+              <div className='space-y-0.5 border-b border-[var(--border-color)] pb-3 px-3'>
 
                 <Link to={'/profile/friends'}>
                   <div className='flex items-center py-2 px-3 rounded-lg w-full hover:bg-[#2c2b30] cursor-pointer '>
@@ -300,9 +275,7 @@ export const Sidebar = () => {
                 </Link>
               </div>
 
-            </div>
-
-            <div className='h-full flex flex-col overflow-hidden'>
+              <div className='flex flex-col pt-4'>
 
             {conversationLoading ? (
                 <div className='flex justify-center '>
@@ -311,7 +284,7 @@ export const Sidebar = () => {
               ) : (
                 <>
                   {conversations?.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full text-center px-6">
+                    <div className="flex flex-col items-center pt-10 h-full text-center px-6">
                       <div className="rounded-2xl mb-4 shadow-sm">
                         <img 
                           src={FriendsIcon} 
@@ -329,7 +302,7 @@ export const Sidebar = () => {
                       </p>
                     </div>
                     ) : (
-                      <div className='flex-1 overflow-y-auto'>
+                      <div className='space-y-0.5 px-3'>
 
                         <div className='mb-2 '>
                           <p className='text-[var(--text-color)]/70 text-sm '> Direct messages </p>
@@ -363,7 +336,7 @@ export const Sidebar = () => {
                                 key={friend.id} 
                                 to={`/profile/chat/${friend.id}`}>
 
-                                <div className='flex items-center gap-4 py-2 w-full relative px-3 cursor-pointer hover:bg-[var(--background-hover)] rounded-lg '>
+                                <div className='flex items-center gap-4  py-2 w-full relative px-3 cursor-pointer hover:bg-[var(--background-hover)] rounded-lg '>
 
                                   {friend.isGroup ? (
                                     friend.groupAvatar ? (
@@ -496,6 +469,25 @@ export const Sidebar = () => {
                 </>
               )}
 
+              </div>
+            </div>
+
+            <div className='absolute bottom-2 left-2 right-2 flex h-[58px] items-center justify-between rounded-[8px] border border-[#30313a] bg-[#202127] shadow-lg shadow-black/20'>
+              <Link to='/profile/edit' className='flex items-center min-w-0 w-full hover:bg-white/5 gap-3 rounded-[8px] px-4 py-2 transition '>
+                <div className='relative shrink-0'>
+                  <img
+                    src={user?.avatar || UserPfp}
+                    alt='User profile picture'
+                    className='h-9 w-9 rounded-full object-cover'
+                  />
+                  <span className='absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-[3px] border-[#202127] bg-[#23a55a]' />
+                </div>
+
+                <div className='min-w-0'>
+                  <p className='truncate text-[15px] font-semibold leading-5 text-white'>{user?.username || 'User'}</p>
+                  <p className='text-[13px] leading-4 text-[#b5bac1]'> Online </p>
+                </div>
+              </Link>
             </div>
 
           </div>
@@ -536,7 +528,7 @@ export const Sidebar = () => {
               </label>
             </div>
 
-            <div className='flex-1 overflow-y-auto px-3 py-3 [scrollbar-color:#6e707a_transparent] [scrollbar-width:thin]'>
+            <div className='flex-1 overflow-y-auto px-3 py-3 '>
               {friendsLoading ? (
                 <div className='flex h-full items-center justify-center'>
                   <p className='text-sm font-medium text-[#bfc1c8]'>Loading friends...</p>

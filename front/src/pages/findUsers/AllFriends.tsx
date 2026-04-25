@@ -152,7 +152,7 @@ export const AllFriends = () => {
                 
               </div>
             ) : (
-              <div className="h-full overflow-y-auto pr-3 divide-y divide-[#26272e] [scrollbar-color:#6e707a_transparent] [scrollbar-width:thin]">
+              <div className="h-full overflow-y-auto pr-3 divide-y divide-[#26272e]">
                 {friends.map((friend) => (
                   <div
                     key={friend.id}
@@ -205,7 +205,7 @@ export const AllFriends = () => {
                       </button>
 
                       {morePopupFriendId === friend.id && (
-                        <div className="absolute right-4 top-12 z-20 w-44 rounded-[8px] border border-[#30313a] bg-[var(--background-secondary-color)] p-1 shadow-xl shadow-black/30">
+                        <div className="absolute right-4 bottom-12 z-20 w-44 rounded-[8px] border border-[#30313a] bg-[var(--background-secondary-color)] p-1 shadow-xl shadow-black/30">
                           <button
                             type="button"
                             onClick={() => handleRemoveFriend(friend.id)}

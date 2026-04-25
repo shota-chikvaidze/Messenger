@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Emoji, EmojiProvider } from 'react-apple-emojis'
 import emojiData from 'react-apple-emojis/src/data.json'
 import { GetConversationIdEndpoint, UpdateConversationEndpoint, type UpdateConversationPayload, AddParticipantEndpoint, type AddParticipantPayload } from '../../api/endpoints/conversation'
-import { GetMessagesEndpoint, SendMessagesEndpoint, type SendMessagePayload } from '../../api/endpoints/message'
+import { GetMessagesEndpoint, SendMessagesEndpoint, type SendMessagePayload, RemoveMessagesEndpoint } from '../../api/endpoints/message'
 import { RemoveFriendEndpoint, SendFriendReqEndpoint } from '../../api/endpoints/friends'
 
 import { GetFriendsEndpoint } from '../../api/endpoints/friends'
@@ -16,10 +16,10 @@ import type { MessageType } from '../../api/endpoints/message'
 import UserPfp from '../../assets/images/user-pfp.jpg'
 import { showErrorToast, showSuccessToast } from '../../utils/toast'
 import { FaUserPlus } from "react-icons/fa6";
-import { MdModeEdit } from "react-icons/md";
+import { MdModeEdit, MdMoreHoriz } from "react-icons/md";
 import { FaUserFriends } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
-import { IoClose, IoHappyOutline, IoSearch, IoPersonAddSharp, IoPersonRemoveSharp  } from "react-icons/io5";
+import { IoAdd, IoClose, IoGiftOutline, IoHappyOutline, IoSearch, IoPersonAddSharp, IoPersonRemoveSharp  } from "react-icons/io5";
 import { BsPersonRaisedHand } from "react-icons/bs";
 
 
@@ -200,6 +200,22 @@ const Chat = () => {
     }
   })
 
+  const removeMessageMutation = useMutation({
+    mutationKey: ['remove-message-mutation'],
+    mutationFn: (id: string) => RemoveMessagesEndpoint(id),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['get-messages'] })
+      showSuccessToast(data.message || 'Message removed')
+    },
+    onError: (error: any) => {
+      showErrorToast(error?.response?.data?.message || 'Error Occurred')
+    }
+  })
+
+  // remove message handler
+  const handleRemoveMessage = (id: string) => {
+    removeMessageMutation.mutate(id)
+  }
 
   // remove friend handler
   const handleRemoveFriend = (id: string) => {
@@ -310,7 +326,6 @@ const Chat = () => {
     setSelectedFriendIds((prev) => prev.filter((id) => id !== friendId))
   }
   
-
 
 
   useEffect(() => {
@@ -542,7 +557,7 @@ const Chat = () => {
       <div className='flex h-full pt-14 '>
 
         <div className='flex flex-col justify-between h-full flex-1 '>
-          <div className='overflow-y-auto [scrollbar-color:#1a1b20_transparent] [scrollbar-width:thin] '>
+          <div className='overflow-y-auto  '>
 
             {/* messages header */}
             {conversation?.isGroup ? (
@@ -625,7 +640,7 @@ const Chat = () => {
             {/* Messages */}
             <div className='h-auto relative '>
               {messages.map((message) => (
-                  <div key={message.id} className={`group flex gap-3 rounded-[8px] py-2 transition hover:bg-[var(--background-hover)] `}>
+                  <div key={message.id} className={`group relative flex gap-3 rounded-[8px] py-2 transition hover:bg-[var(--background-hover)] `}>
 
                     <div className={`flex items-start max-w-[70%] gap-4 rounded-[8px] px-5 py-2 text-[#f2f3f5]  `} >
                       <img
@@ -646,10 +661,16 @@ const Chat = () => {
                             </p>
                           </div>
                         )}
+                        
+                        <div>
+                          <p className='break-words font-medium text-[15px] leading-5'>
+                            {message.content}
+                          </p>
 
-                        <p className='break-words font-medium text-[15px] leading-5'>
-                          {message.content}
-                        </p>
+                          {message.sender.id !== otherUser?.id && (
+                            <MdMoreHoriz className='absolute -top-3 right-10 bg-[var(--background-hover)] shadow-md shadow-black/30 cursor-pointer w-9 h-9 p-2 rounded-lg hidden group-hover:flex ' />
+                          )}
+                        </div>
                       </div>
 
                     </div>
@@ -671,46 +692,14 @@ const Chat = () => {
           </div>
 
           {/* input texting div */}
-          <div className='shrink-0 w-full '>
+          <div className='shrink-0 w-full border-t border-[#1f2026] bg-[var(--outlet-color)] px-3 py-2'>
             <form
               onSubmit={(e) => {
                 e.preventDefault()
                 handleSendMessage(sendMessagePayload.content, 'text')
               }}
-              className='flex min-h-12 items-center rounded-[8px] bg-[#222327] px-4 py-2 m-2 mr-2'
+              className='flex min-h-[58px] items-center rounded-[8px] border border-[#30313a] bg-[#222327] px-5 shadow-sm shadow-black/20'
             >
-              <div className='relative mr-2 shrink-0'>
-                <button
-                  type='button'
-                  onClick={() => setEmojiPopup((current) => !current)}
-                  aria-label='Open emoji picker'
-                  className='grid h-9 w-9 cursor-pointer place-items-center rounded-[8px] text-[#b5bac1] transition hover:bg-white/10 hover:text-white'
-                >
-                  <IoHappyOutline className='text-[22px]' />
-                </button>
-
-                {emojiPopup && (
-                  <div className='absolute bottom-12 left-0 z-50 w-[278px] rounded-[8px] border border-[#30313a] bg-[#1f2027] p-3 shadow-2xl shadow-black/50'>
-                    <div className='mb-2 text-xs font-semibold uppercase tracking-wide text-[#949ba4]'>
-                      Emojis
-                    </div>
-
-                    <div className='grid grid-cols-5 gap-1'>
-                      {emojiOptions.map((emoji) => (
-                        <button
-                          key={emoji.name}
-                          type='button'
-                          onClick={() => handleEmojiSelect(emoji.value)}
-                          aria-label={`Add ${emoji.name}`}
-                          className='grid h-10 w-10 cursor-pointer place-items-center rounded-[8px] transition hover:bg-[#31333b]'
-                        >
-                          <Emoji name={emoji.name} width={24} height={24} />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
 
               <input 
                 ref={messageInputRef}
@@ -741,17 +730,42 @@ const Chat = () => {
                   }, 1500)
                 
                 }}
-                className='h-12 w-full bg-transparent text-[15px] text-[#f2f3f5] outline-none placeholder:text-[#949ba4]'
+                className='h-12 min-w-0 flex-1 bg-transparent text-[16px] text-[#f2f3f5] outline-none placeholder:text-[#858895]'
                 placeholder={`Message @${chatTitle || 'conversation'}`}
               />
 
-              <button
-                type='submit'
-                disabled={!sendMessagePayload.content.trim() || sendMessageMutation.isPending}
-                className='ml-3 h-9 cursor-pointer rounded-[8px] bg-[#5865f2] px-4 text-sm font-semibold text-white transition hover:bg-[#4752c4] disabled:cursor-not-allowed disabled:bg-[#4a4d55] disabled:text-[#949ba4]'
-              >
-                Send
-              </button>
+              <div className='relative shrink-0'>
+                <button
+                  type='button'
+                  onClick={() => setEmojiPopup((current) => !current)}
+                  aria-label='Open emoji picker'
+                  className='grid h-10 w-10 cursor-pointer place-items-center rounded-[8px] transition hover:bg-white/10 hover:text-white'
+                >
+                  <IoHappyOutline className='text-[22px]' />
+                </button>
+
+                {emojiPopup && (
+                  <div className='absolute bottom-12 right-0 z-50 w-[278px] rounded-[8px] border border-[#30313a] bg-[#1f2027] p-3 shadow-2xl shadow-black/50'>
+                    <div className='mb-2 text-xs font-semibold uppercase tracking-wide text-[#949ba4]'>
+                      Emojis
+                    </div>
+
+                    <div className='grid grid-cols-5 gap-1'>
+                      {emojiOptions.map((emoji) => (
+                        <button
+                          key={emoji.name}
+                          type='button'
+                          onClick={() => handleEmojiSelect(emoji.value)}
+                          aria-label={`Add ${emoji.name}`}
+                          className='grid h-10 w-10 cursor-pointer place-items-center rounded-[8px] transition hover:bg-[#31333b]'
+                        >
+                          <Emoji name={emoji.name} width={24} height={24} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
 
             </form>
           </div>
@@ -965,7 +979,7 @@ const Chat = () => {
               </label>
             </div>
 
-            <div className='flex-1 overflow-y-auto px-3 py-3 [scrollbar-color:#6e707a_transparent] [scrollbar-width:thin]'>
+            <div className='flex-1 overflow-y-auto px-3 py-3 '>
               {friendsLoading ? (
                 <div className='flex h-full items-center justify-center'>
                   <p className='text-sm font-medium text-[#bfc1c8]'>Loading friends...</p>

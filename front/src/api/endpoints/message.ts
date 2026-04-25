@@ -41,3 +41,8 @@ export const SendMessagesEndpoint = async (payload: SendMessagePayload, id: stri
     const res = await axios.post(`/message/send-message/${id}`, payload)
     return res.data
 }
+
+export const RemoveMessagesEndpoint = async (id: string) => {
+    const res = await axios.delete(`/message/delete-message/${id}`)
+    return res.data
+}

@@ -20,7 +20,7 @@
     font-family: "Funnel Sans", sans-serif;
 }
 
-/* scrollbar styles */
+/* scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -43,5 +43,5 @@
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--background-secondary-color) var(--background-color);
+  scrollbar-color: var(--background-secondary-color) var(--outlet-color);
 }

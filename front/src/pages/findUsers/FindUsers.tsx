@@ -40,7 +40,7 @@ export const FindUsers = () => {
 
   return (
     <section className='w-full h-screen overflow-y-auto p-10 flex '>
-      <div className='max-w-4xl w-full flex flex-col items-start '>
+      <div className='   w-full flex flex-col items-start '>
 
 
           <div className="mb-6 w-full">
@@ -56,7 +56,7 @@ export const FindUsers = () => {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search..."
-                className="h-11 max-w-4xl w-full rounded-[8px] border border-[#30313a] bg-[#111216] pl-11 pr-4 text-[var(--text-color)] outline-none transition placeholder:text-[#81848e] focus:border-[#5865f2]"
+                className="h-11 w-full rounded-[8px] border border-[#30313a] bg-[#111216] pl-11 pr-4 text-[var(--text-color)] outline-none transition placeholder:text-[#81848e] focus:border-[#5865f2]"
               />
             </label>
           </div>
