@@ -150,7 +150,16 @@ exports.addParticipant = async (req, res) => {
     try{
 
         const conversationId = req.params.id
-        const { userId } = req.body
+        const { userId, userIds } = req.body || {}
+        const participantIds = Array.isArray(userIds)
+            ? userIds
+            : userId
+                ? [userId]
+                : []
+
+        if(participantIds.length === 0){
+            return res.status(400).json({ message: 'Choose at least one participant' })
+        }
 
         const conversation = await Conversation.findById(conversationId)
         if(!conversation){
@@ -161,26 +170,33 @@ exports.addParticipant = async (req, res) => {
             return res.status(400).json({ message: 'Cannot add participants to a direct message' })
         }
 
-        if (conversation.groupAdmin.toString() !== req.user.id) {
+        if(!conversation.groupAdmin && conversation.participants.some(p => p.toString() === req.user.id)){
+            conversation.groupAdmin = req.user.id
+        }
+
+        if (conversation.groupAdmin?.toString() !== req.user.id) {
             return res.status(403).json({ message: 'Only the group admin can add participants' })
         }
 
-        const alreadyIn = conversation.participants.some(p => p.toString() === userId)
+        const existingParticipantIds = conversation.participants.map(p => p.toString())
+        const alreadyIn = participantIds.some(id => existingParticipantIds.includes(id))
         if(alreadyIn) {
-            return res.status(400).json({ message: 'User is already in this group' })
+            return res.status(400).json({ message: 'One or more users are already in this group' })
         }
 
-        conversation.participants.push(userId)
+        conversation.participants.push(...participantIds)
         await conversation.save()
 
-        const populated = await conversation.populate('participants', 'username avatar isOnline')
+        const populated = await conversation.populate('participants', 'username avatar isOnline createdAt')
 
-        res.status(200).json({ message: 'Participant added', conversation: formatConversation(populated) })
-
+        res.status(200).json({
+            message: participantIds.length > 1 ? 'Participants added' : 'Participant added',
+            conversation: formatConversation(populated)
+        })
 
 
     }catch(err){
-        res.status(500).json({message: 'Server error'})
+        res.status(500).json({message: 'Server error', error: err.message})
     }
 }
 

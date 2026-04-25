@@ -53,7 +53,7 @@ export const FriendRequests = () => {
 
 
   return (
-    <section className='min-h-screen w-full bg-[var(--outlet-color)] px-6 py-6 text-[#f2f3f5]'>
+    <section className='h-screen overflow-y-auto p-10 w-full bg-[var(--outlet-color)] text-[#f2f3f5]'>
       <div className='mx-auto w-full max-w-5xl'>
         
         <div className='border-b border-[#2a2b32] pb-5'>

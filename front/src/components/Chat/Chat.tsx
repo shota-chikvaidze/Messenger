@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { GetConversationIdEndpoint, UpdateConversationEndpoint, type UpdateConversationPayload } from '../../api/endpoints/conversation'
+import { Emoji, EmojiProvider } from 'react-apple-emojis'
+import emojiData from 'react-apple-emojis/src/data.json'
+import { GetConversationIdEndpoint, UpdateConversationEndpoint, type UpdateConversationPayload, AddParticipantEndpoint, type AddParticipantPayload } from '../../api/endpoints/conversation'
 import { GetMessagesEndpoint, SendMessagesEndpoint, type SendMessagePayload } from '../../api/endpoints/message'
 import { RemoveFriendEndpoint, SendFriendReqEndpoint } from '../../api/endpoints/friends'
 
@@ -17,7 +19,7 @@ import { FaUserPlus } from "react-icons/fa6";
 import { MdModeEdit } from "react-icons/md";
 import { FaUserFriends } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
-import { IoClose, IoSearch, IoPersonAddSharp, IoPersonRemoveSharp  } from "react-icons/io5";
+import { IoClose, IoHappyOutline, IoSearch, IoPersonAddSharp, IoPersonRemoveSharp  } from "react-icons/io5";
 import { BsPersonRaisedHand } from "react-icons/bs";
 
 
@@ -25,6 +27,29 @@ interface TypingEvent {
   userId: string
   conversationId: string
 }
+
+const emojiOptions = [
+  { name: 'grinning face', value: '😀' },
+  { name: 'face with tears of joy', value: '😂' },
+  { name: 'slightly smiling face', value: '🙂' },
+  { name: 'smiling face with smiling eyes', value: '😊' },
+  { name: 'smiling face with heart eyes', value: '😍' },
+  { name: 'face blowing a kiss', value: '😘' },
+  { name: 'thinking face', value: '🤔' },
+  { name: 'face with rolling eyes', value: '🙄' },
+  { name: 'crying face', value: '😢' },
+  { name: 'loudly crying face', value: '😭' },
+  { name: 'angry face', value: '😠' },
+  { name: 'party popper', value: '🎉' },
+  { name: 'red heart', value: '❤️' },
+  { name: 'fire', value: '🔥' },
+  { name: 'thumbs up', value: '👍' },
+  { name: 'folded hands', value: '🙏' },
+  { name: 'eyes', value: '👀' },
+  { name: 'hundred points', value: '💯' },
+  { name: 'sparkles', value: '✨' },
+  { name: 'skull', value: '💀' }
+]
 
 
 const Chat = () => {
@@ -43,6 +68,7 @@ const Chat = () => {
   const [editGroupPopup, setEditGroupPopup] = useState(false)
   const [addFriendPopup, setAddFriendPopup] = useState(false)
   const [sendRequestPopup, setSendRequestPopup] = useState(false)
+  const [emojiPopup, setEmojiPopup] = useState(false)
 
   const [typingUsers, setTypingUsers] = useState<string[]>([])
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -53,6 +79,7 @@ const Chat = () => {
   const user = useAuth((store) => store.user)
   const queryClient = useQueryClient()
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
+  const messageInputRef = useRef<HTMLInputElement | null>(null)
 
   const { data: conversationData, isLoading: conversationLoading } = useQuery({
     queryKey: ['get-conversation', id],
@@ -158,6 +185,22 @@ const Chat = () => {
     }
   })
 
+  const addParticipantMutation = useMutation({
+    mutationKey: ['add-participant'],
+    mutationFn: ({ id, payload }: { id: string; payload: AddParticipantPayload }) => AddParticipantEndpoint(id, payload),
+    onSuccess: (data) => {
+      setAddFriendPopup(false)
+      setSelectedFriendIds([])
+      queryClient.invalidateQueries({ queryKey: ['get-conversation'] })
+      queryClient.invalidateQueries({ queryKey: ['get-conversations'] })
+      showSuccessToast(data.message || 'Participant added')
+    },
+    onError: (error: any) => {
+      showErrorToast(error?.response?.data?.message || 'Error Occurred')
+    }
+  })
+
+
   // remove friend handler
   const handleRemoveFriend = (id: string) => {
     removeFriendMutation.mutate(id)
@@ -168,6 +211,7 @@ const Chat = () => {
     sendRequestMutation.mutate(id)
   }
 
+  // handling function for updating group conversations avatar
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file || !id) return
@@ -181,7 +225,6 @@ const Chat = () => {
     })
 
   }
-
   const handleUpdateConversation = () => {
     if(!id) return
 
@@ -197,6 +240,7 @@ const Chat = () => {
   const handleSendMessage = (content: string, type: string) => {
     if (!id || !content.trim()) return
 
+    setEmojiPopup(false)
     emitTypingStop()
 
     if (typingTimeoutRef.current) {
@@ -211,6 +255,63 @@ const Chat = () => {
       }
     })
   }
+
+  const handleEmojiSelect = (emoji: string) => {
+    setSendMessagePayload((payload) => ({
+      ...payload,
+      content: `${payload.content}${emoji}`,
+      type: 'text'
+    }))
+
+    emitTypingStart()
+    messageInputRef.current?.focus()
+  }
+
+
+  // create direct or group conversations handler
+  const handleAddParticipant = () => {
+    
+    if(!id){
+      return
+    }
+
+    if (!currentUser) {
+      showErrorToast('Please sign in again to start a conversation')
+      return
+    }
+
+    if (selectedFriendIds.length === 0) {
+      showErrorToast('Choose at least one friend')
+      return
+    }
+
+    addParticipantMutation.mutate({
+      id,
+      payload: {
+        userIds: selectedFriendIds
+      }
+    })
+
+  }
+
+  const handleFriendCheckbox = (friendId: string, checked: boolean) => {
+    if (!currentUser) {
+      showErrorToast('Please sign in again to start a conversation')
+      return
+    }
+
+    if (checked) {
+      setSelectedFriendIds((prev) => (
+        prev.includes(friendId) ? prev : [...prev, friendId]
+      ))
+      return
+    }
+
+    setSelectedFriendIds((prev) => prev.filter((id) => id !== friendId))
+  }
+  
+
+
 
   useEffect(() => {
     if (!id) return
@@ -353,7 +454,7 @@ const Chat = () => {
   )
 
   if (isLoading) {
-    return <div>Loading...</div>
+    return <div className='text-white/80 '>Loading...</div>
   }
 
   if (!conversation) {
@@ -368,6 +469,7 @@ const Chat = () => {
   }
 
   return (
+    <EmojiProvider data={emojiData}>
     <section className='relative flex h-screen min-h-0 w-full flex-col overflow-hidden bg-[var(--outlet-color)] text-[#dbdee1]'>
       
       <header className='absolute shrink-0 w-full flex items-center gap-10 h-14 border-b border-[#1f2026] bg-[var(--outlet-color)] px-5 shadow-sm'>
@@ -577,7 +679,41 @@ const Chat = () => {
               }}
               className='flex min-h-12 items-center rounded-[8px] bg-[#222327] px-4 py-2 m-2 mr-2'
             >
+              <div className='relative mr-2 shrink-0'>
+                <button
+                  type='button'
+                  onClick={() => setEmojiPopup((current) => !current)}
+                  aria-label='Open emoji picker'
+                  className='grid h-9 w-9 cursor-pointer place-items-center rounded-[8px] text-[#b5bac1] transition hover:bg-white/10 hover:text-white'
+                >
+                  <IoHappyOutline className='text-[22px]' />
+                </button>
+
+                {emojiPopup && (
+                  <div className='absolute bottom-12 left-0 z-50 w-[278px] rounded-[8px] border border-[#30313a] bg-[#1f2027] p-3 shadow-2xl shadow-black/50'>
+                    <div className='mb-2 text-xs font-semibold uppercase tracking-wide text-[#949ba4]'>
+                      Emojis
+                    </div>
+
+                    <div className='grid grid-cols-5 gap-1'>
+                      {emojiOptions.map((emoji) => (
+                        <button
+                          key={emoji.name}
+                          type='button'
+                          onClick={() => handleEmojiSelect(emoji.value)}
+                          aria-label={`Add ${emoji.name}`}
+                          className='grid h-10 w-10 cursor-pointer place-items-center rounded-[8px] transition hover:bg-[#31333b]'
+                        >
+                          <Emoji name={emoji.name} width={24} height={24} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <input 
+                ref={messageInputRef}
                 type='text'
                 value={sendMessagePayload.content}
                 onChange={(e) => {
@@ -879,7 +1015,7 @@ const Chat = () => {
                         type='checkbox'
                         value={friend.id}
                         checked={selectedFriendIds.includes(friend.id)}
-                        // onChange={(e) => handleFriendCheckbox(friend.id, e.target.checked)}
+                        onChange={(e) => handleFriendCheckbox(friend.id, e.target.checked)}
                         className='h-4 w-4 cursor-pointer accent-[#5865f2]'
                       />
                     </div>
@@ -887,17 +1023,6 @@ const Chat = () => {
                 </div>
               )}
             </div>
-
-            {selectedFriendIds.length > 1 && (
-              <div className='border-t border-[#2a2b32] px-5 py-4'>
-                <input
-                  value={groupName}
-                  onChange={(e) => setGroupName(e.target.value)}
-                  placeholder="Group name"
-                  className='h-11 w-full rounded-[8px] border border-[#30313a] bg-[#111216] px-4 text-[15px] text-white outline-none transition placeholder:text-[#81848e] focus:border-[#5865f2]'
-                />
-              </div>
-            )}
 
             <div className='flex items-center justify-between gap-3 border-t border-[#2a2b32] bg-[#14151a] px-5 py-4'>
               <p className='text-sm text-[#9da0a8]'>
@@ -908,16 +1033,16 @@ const Chat = () => {
                     : `${selectedFriendIds.length} friends selected`}
               </p>
               
-              {/* <button
+              <button
                 type='button'
-                onClick={handleSubmit}
-                disabled={!hasSelectedFriends || createConvMutation.isPending || createGroupConvMutation.isPending}
+                onClick={handleAddParticipant}
+                disabled={selectedFriendIds.length === 0 || addParticipantMutation.isPending}
                 className='h-10 cursor-pointer rounded-[8px] bg-[#5865f2] px-5 text-sm font-semibold text-white transition hover:bg-[#4752c4] disabled:cursor-not-allowed disabled:bg-[#363743] disabled:text-[#858894]'
               >
-                {createConvMutation.isPending || createGroupConvMutation.isPending
-                  ? 'Starting...'
-                  : selectedFriendIds.length > 1 ? 'Create group' : 'Start chat'}
-              </button> */}
+                {addParticipantMutation.isPending
+                  ? 'Adding...'
+                  : selectedFriendIds.length > 1 ? 'Add friends' : 'Add friend'}
+              </button>
             </div>
 
           </div>
@@ -925,6 +1050,7 @@ const Chat = () => {
       )}
 
     </section>
+    </EmojiProvider>
   )
 }
 

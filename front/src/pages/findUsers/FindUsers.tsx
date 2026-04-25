@@ -39,7 +39,7 @@ export const FindUsers = () => {
   }
 
   return (
-    <section className='w-full min-h-screen p-10 flex  '>
+    <section className='w-full h-screen overflow-y-auto p-10 flex '>
       <div className='max-w-4xl w-full flex flex-col items-start '>
 
 
@@ -49,17 +49,20 @@ export const FindUsers = () => {
               <p className="text-[var(--text-color)]/70 "> Discover people you may know </p>
             </div>
 
-            <input 
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search..."
-              className="border border-blue-400 py-2 text-[var(--text-color)] px-5 rounded-lg max-w-4xl w-full "
-            />
+            <label className="relative block">
+              <IoSearch className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[20px] text-[#b9bbc2]" />
+              <input 
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search..."
+                className="h-11 max-w-4xl w-full rounded-[8px] border border-[#30313a] bg-[#111216] pl-11 pr-4 text-[var(--text-color)] outline-none transition placeholder:text-[#81848e] focus:border-[#5865f2]"
+              />
+            </label>
           </div>
 
           {users.length === 0 ? (
-            <div className="flex items-center flex-col w-full mt-10 ">
+            <div className="flex flex-1 items-center flex-col w-full mt-10 ">
 
               <IoSearch className="text-5xl text-gray-400 " />
 

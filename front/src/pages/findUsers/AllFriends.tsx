@@ -82,6 +82,7 @@ export const AllFriends = () => {
     onSuccess: (data) => {
       showSuccessToast(data.message || 'Conversation ready')
       navigate(`/profile/chat/${data.conversation.id}`)
+      queryClient.invalidateQueries({ queryKey: ['get-conversations'] })
     },
     onError: (error: any) => {
       showErrorToast(error?.response?.data?.message || 'Error Occurred')
@@ -119,7 +120,7 @@ export const AllFriends = () => {
 
         </header>
 
-        <div className="flex flex-1 flex-col px-7 py-3">
+        <div className="flex min-h-0 flex-1 flex-col px-7 py-3">
           <label className="relative mb-7 block">
             <IoSearch className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[22px] text-[#d8d9de]" />
             <input
@@ -135,7 +136,7 @@ export const AllFriends = () => {
             All friends - {friends.length}
           </div>
 
-          <div className="flex-1 overflow-y-auto pr-3 [scrollbar-color:#6e707a_transparent] [scrollbar-width:thin]">
+          <div className="min-h-0 flex-1">
             {friendsLoading ? (
               <div className="flex h-full items-center justify-center">
                 <p className="text-lg font-medium text-[#bfc1c8]">Loading...</p>
@@ -151,7 +152,7 @@ export const AllFriends = () => {
                 
               </div>
             ) : (
-              <div className="divide-y divide-[#26272e]">
+              <div className="h-full overflow-y-auto pr-3 divide-y divide-[#26272e] [scrollbar-color:#6e707a_transparent] [scrollbar-width:thin]">
                 {friends.map((friend) => (
                   <div
                     key={friend.id}

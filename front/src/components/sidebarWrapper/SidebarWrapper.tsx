@@ -4,10 +4,9 @@ import { Outlet } from "react-router-dom"
 const SidebarWrapper = () => {
   return (
     <div className="flex bg-[var(--background-color)] ">
-        
         <Sidebar />
 
-        <div className="w-full bg-[var(--outlet-color)] ">
+        <div className="min-w-0 flex-1 bg-[var(--outlet-color)] ">
           <Outlet />
         </div>
 

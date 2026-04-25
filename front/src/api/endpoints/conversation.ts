@@ -58,6 +58,10 @@ export interface UpdateConversationPayload {
     formData: FormData
 }
 
+export interface AddParticipantPayload {
+    userIds: string[]
+}
+
 
 
 export const CreateConvEndpoint = async (payload: CreateConversationPayload): Promise<CreateConversationData> => {
@@ -89,10 +93,10 @@ export const UpdateConversationEndpoint = async ({ id, formData }: UpdateConvers
     return res.data
 }
 
-// export const AddParticipantEndpoint = async ( id: string, payload: AddParticipantPayload) => {
-//   const res = await axios.post(`/conversation/add-participant/${id}`, payload)
-//   return res.data
-// }
+export const AddParticipantEndpoint = async (id: string, payload: AddParticipantPayload): Promise<ConversationIdData> => {
+  const res = await axios.post(`/conversation/add-participant/${id}`, payload)
+  return res.data
+}
 
 
 export const LeaveGroupEndpoint = async (id: string) => {
