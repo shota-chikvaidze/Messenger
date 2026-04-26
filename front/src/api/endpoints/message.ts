@@ -31,6 +31,11 @@ export interface SendMessagePayload {
     type: string
 }
 
+// interface for editing messages
+export interface EditMessagePayload {
+    content: string
+}
+
 
 export const GetMessagesEndpoint = async (id: string): Promise<GetMessagesData> => {
     const res = await axios.get(`/message/get-messages/${id}`)
@@ -44,5 +49,10 @@ export const SendMessagesEndpoint = async (payload: SendMessagePayload, id: stri
 
 export const RemoveMessagesEndpoint = async (id: string) => {
     const res = await axios.delete(`/message/delete-message/${id}`)
+    return res.data
+}
+
+export const EditMessagesEndpoint = async (payload: EditMessagePayload, id: string) => {
+    const res = await axios.patch(`/message/edit-message/${id}`, payload)
     return res.data
 }

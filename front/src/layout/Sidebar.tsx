@@ -9,9 +9,8 @@ import { useAuth } from '../store/useAuth'
 import FriendsIcon from '../assets/icons/meeting.png'
 import UserPfp from '../assets/images/user-pfp.jpg'
 import { IoClose, IoSearch } from "react-icons/io5";
-import { BsGearFill, BsHeadphones, BsMicMuteFill, BsPersonRaisedHand } from "react-icons/bs";
+import { BsPersonRaisedHand } from "react-icons/bs";
 import { GoGitPullRequest } from "react-icons/go";
-import { FaUserPlus } from "react-icons/fa";
 
 import { RemoveFriendEndpoint, SendFriendReqEndpoint } from '../api/endpoints/friends'
 import { CreateConvEndpoint, type CreateConversationPayload, GetConversationEndpoint, CreateGroupConvEndpoint, type CreateGroupConversationPayload, LeaveGroupEndpoint } from '../api/endpoints/conversation'
@@ -221,6 +220,7 @@ export const Sidebar = () => {
       document.removeEventListener('mousedown', handleOutsideClick)
     }
   }, [conversationActions])
+
 
   const getGroupPreviewAvatars = (participants: typeof conversations[number]['participants'], conversationId: string) => {
     return [...participants]
@@ -444,6 +444,18 @@ export const Sidebar = () => {
                                               Edit Group
                                             </button>
                                         
+                                            <button
+                                              onClick={(e) => {
+                                                e.preventDefault()
+                                                e.stopPropagation()
+                                                setConversationActions(null)
+                                                navigate(`/profile/chat/${friend.id}?addParticipants=true`)
+                                              }}
+                                              className="py-2 px-3 text-left cursor-pointer flex items-center w-full text-[14px] font-semibold rounded-[6px] hover:bg-white/10 transition-colors"
+                                            >
+                                              Add participants
+                                            </button>
+
                                             <button
                                               onClick={(e) => { handleLeaveConversation(friend.id); e.preventDefault() }}
                                               disabled={leaveConversationMutation.isPending}
