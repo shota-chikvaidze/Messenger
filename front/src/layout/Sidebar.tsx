@@ -11,6 +11,7 @@ import UserPfp from '../assets/images/user-pfp.jpg'
 import { IoClose, IoSearch } from "react-icons/io5";
 import { BsPersonRaisedHand } from "react-icons/bs";
 import { GoGitPullRequest } from "react-icons/go";
+import { LuLogOut } from 'react-icons/lu'
 
 import { RemoveFriendEndpoint, SendFriendReqEndpoint } from '../api/endpoints/friends'
 import { CreateConvEndpoint, type CreateConversationPayload, GetConversationEndpoint, CreateGroupConvEndpoint, type CreateGroupConversationPayload, LeaveGroupEndpoint } from '../api/endpoints/conversation'
@@ -484,24 +485,31 @@ export const Sidebar = () => {
               </div>
             </div>
 
-            <div className='absolute bottom-2 left-2 right-2 flex h-[58px] items-center justify-between rounded-[8px] border border-[#30313a] bg-[#202127] shadow-lg shadow-black/20'>
-              <Link to='/profile/edit' className='flex items-center min-w-0 w-full hover:bg-white/5 gap-3 rounded-[8px] px-4 py-2 transition '>
-                <div className='relative shrink-0'>
-                  <img
-                    src={user?.avatar || UserPfp}
-                    alt='User profile picture'
-                    className='h-9 w-9 rounded-full object-cover'
-                  />
-                  <span className='absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-[3px] border-[#202127] bg-[#23a55a]' />
-                </div>
+<div className='absolute bottom-2 left-2 right-2 flex h-[58px] items-center justify-between rounded-[8px] border border-[#30313a] bg-[#202127] shadow-lg shadow-black/20'>
+  <Link to='/profile/edit' className='flex items-center min-w-0 w-full hover:bg-white/5 gap-3 rounded-[8px] px-4 py-2 transition'>
+    <div className='relative shrink-0'>
+      <img
+        src={user?.avatar || UserPfp}
+        alt='User profile picture'
+        className='h-9 w-9 rounded-full object-cover'
+      />
+      <span className='absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-[3px] border-[#202127] bg-[#23a55a]' />
+    </div>
 
-                <div className='min-w-0'>
-                  <p className='truncate text-[15px] font-semibold leading-5 text-white'>{user?.username || 'User'}</p>
-                  <p className='text-[13px] leading-4 text-[#b5bac1]'> Online </p>
-                </div>
-              </Link>
-            </div>
+    <div className='min-w-0'>
+      <p className='truncate text-[15px] font-semibold leading-5 text-white'>{user?.username || 'User'}</p>
+      <p className='text-[13px] leading-4 text-[#b5bac1]'>Online</p>
+    </div>
+  </Link>
 
+  <button
+    onClick={handleLogout}
+    className='mr-2 shrink-0 grid place-items-center w-8 h-8 rounded-[8px] text-[#b5bac1] hover:bg-white/5 hover:text-red-400 transition cursor-pointer'
+    title='Logout'
+  >
+    <LuLogOut className='text-[18px]' />
+  </button>
+</div>
           </div>
       </aside>
 
