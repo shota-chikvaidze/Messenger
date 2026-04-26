@@ -12,6 +12,7 @@ import { IoClose, IoSearch } from "react-icons/io5";
 import { BsPersonRaisedHand } from "react-icons/bs";
 import { GoGitPullRequest } from "react-icons/go";
 import { LuLogOut } from 'react-icons/lu'
+import { HiOutlineUsers, HiOutlineUserGroup, HiOutlineUserPlus } from 'react-icons/hi2'
 
 import { RemoveFriendEndpoint, SendFriendReqEndpoint } from '../api/endpoints/friends'
 import { CreateConvEndpoint, type CreateConversationPayload, GetConversationEndpoint, CreateGroupConvEndpoint, type CreateGroupConversationPayload, LeaveGroupEndpoint } from '../api/endpoints/conversation'
@@ -253,24 +254,23 @@ export const Sidebar = () => {
             <div className='min-h-0 flex-1 overflow-y-auto pr-1 '>
 
               <div className='space-y-0.5 border-b border-[var(--border-color)] pb-3 px-3'>
-
                 <Link to={'/profile/friends'}>
                   <div className='flex items-center py-2 px-3 rounded-lg w-full hover:bg-[#2c2b30] cursor-pointer '>
-                    <BsPersonRaisedHand className='text-md text-white/80 ' />
+                    <HiOutlineUsers className='text-[18px] text-white/80 ' />
                     <h3 className='text-md text-white/80 ml-2 '> Friends </h3>
                   </div>
                 </Link>
 
                 <Link to={'/profile/find-friends'}>
                   <div className='flex items-center py-2 px-3 rounded-lg w-full hover:bg-[#2c2b30] cursor-pointer'>
-                    <IoSearch className='text-md text-white/80 ' />
+                    <HiOutlineUserPlus className='text-[18px] text-white/80 ' />
                     <h3 className='text-md text-white/80 ml-2 '> Add friends </h3>
                   </div>
                 </Link>
 
                 <Link to={'/profile/friend-requests'}>
                   <div className='flex items-center py-2 px-3 rounded-lg w-full hover:bg-[#2c2b30] cursor-pointer'>
-                    <GoGitPullRequest className='text-md text-white/80 ' />
+                    <HiOutlineUserGroup className='text-[18px] text-white/80 ' />
                     <h3 className='text-md text-white/80 ml-2 '> Friend requests </h3>
                   </div>
                 </Link>
