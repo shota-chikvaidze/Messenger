@@ -217,8 +217,12 @@ const Chat = () => {
   const removeMessageMutation = useMutation({
     mutationKey: ['remove-message-mutation'],
     mutationFn: (id: string) => RemoveMessagesEndpoint(id),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['get-messages'] })
+    onSuccess: (data, messageId) => {
+      socket.emit('remove_messages', {
+        messageId,
+        conversationId: id
+      })
+      
       showSuccessToast(data.message || 'Message removed')
     },
     onError: (error: any) => {
@@ -229,9 +233,14 @@ const Chat = () => {
   const editMessageMutation = useMutation({
     mutationKey: ['edit-message-mutation'],
     mutationFn: ({ payload, id }: {payload: EditMessagePayload, id: string}) => EditMessagesEndpoint(payload, id),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['get-messages'] })
-      showSuccessToast(data?.message || "Message edited successfully")
+    onSuccess: (_, variables) => {
+      socket.emit('edit_messages', {
+        messageId: variables.id,
+        content: variables.payload.content,
+        conversationId: id
+      })
+      
+      showSuccessToast('Message edited successfully')
     },
     onError: (error: any) => {
       showErrorToast(error?.response?.data?.message || 'Error Occurred')
@@ -417,7 +426,7 @@ const Chat = () => {
   }
 
 
-
+  
   useEffect(() => {
     if (!id) return
     
@@ -447,15 +456,41 @@ const Chat = () => {
         }
       })
     }
+    
+    const handleRemoveMessage = ({ messageId }: { messageId: string }) => {
+      queryClient.setQueryData(['get-messages', id], (oldData: any) => {
+        if (!oldData) return oldData
+        return {
+          ...oldData,
+          messages: oldData.messages.filter((msg: MessageType) => msg.id !== messageId)
+        }
+      })
+    }
+  
+    const handleEditMessage = (updatedMessage: MessageType) => {
+      queryClient.setQueryData(['get-messages', id], (oldData: any) => {
+        if (!oldData) return oldData
+        return {
+          ...oldData,
+          messages: oldData.messages.map((msg: MessageType) =>
+            msg.id === updatedMessage.id ? updatedMessage : msg
+          )
+        }
+      })
+    }
   
     socket.on('connect', handleConnect)
     socket.on('connect_error', handleConnectError)
     socket.on('new_message', handleNewMessage)
+    socket.on('edit_messages', handleEditMessage)
+    socket.on('remove_messages', handleRemoveMessage)
   
     return () => {
       socket.off('connect', handleConnect)
       socket.off('connect_error', handleConnectError)
       socket.off('new_message', handleNewMessage)
+      socket.off('edit_messages', handleEditMessage)
+      socket.off('remove_messages', handleRemoveMessage)
     }
   }, [id, queryClient])
 
@@ -842,9 +877,15 @@ const Chat = () => {
 
               <div>
                 {isSomeoneTyping && (
-                  <p className="text-sm text-gray-400 px-5 pb-2">
-                    {otherUser?.username} is typing...
-                  </p>
+                  conversation.isGroup ? (
+                    <p className="text-sm text-gray-400 px-5 pb-2">
+                      {/* {otherUser?.username} is typing... */}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-gray-400 px-5 pb-2">
+                      {otherUser?.username} is typing...
+                    </p>
+                  )
                 )}
               </div>
             </div>
