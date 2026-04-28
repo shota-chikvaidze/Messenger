@@ -546,14 +546,6 @@ const Chat = () => {
       setGroupName(conversation.groupName || '')
     }
   }, [conversation, editGroupPopup])
-
-
-  // if group username found fill the edit field
-  useEffect(() => {
-    if(conversation?.groupName){
-      setGroupName(conversation.groupName || '')
-    }
-  }, [conversation, editGroupPopup])
   
 
   // open edit group popup with searchParams
@@ -979,9 +971,9 @@ const Chat = () => {
         </div>
 
         {/* right sidebar */}
-        <div className='w-[320px] h-full bg-[#1e1c20] border-l border-[var(--border-color)]  '>
+        <div className=' border-l border-[var(--border-color)]  '>
           {conversation.isGroup ? (
-            <div className='p-4'>
+            <div className='p-4 w-[280px] h-full '>
               <h2 className='text-gray-400 text-sm mb-2 '> Members: {conversation.participants.length} </h2>
 
               <div className='space-y-3 '>
@@ -1006,8 +998,7 @@ const Chat = () => {
 
             </div>
           ) : (
-            <div className=" rounded-xl text-white shadow-md">
-
+            <div className="w-[320px] h-full bg-[#1e1c20] rounded-xl text-white shadow-md">
 
               <div className="relative w-full h-30 bg-black flex justify-end gap-3 p-3">
 

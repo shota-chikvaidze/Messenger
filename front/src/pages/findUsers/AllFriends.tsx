@@ -205,7 +205,7 @@ export const AllFriends = () => {
                       </button>
 
                       {morePopupFriendId === friend.id && (
-                        <div className="absolute right-4 bottom-12 z-20 w-44 rounded-[8px] border border-[#30313a] bg-[var(--background-secondary-color)] p-1 shadow-xl shadow-black/30">
+                        <div className="absolute right-18 z-20 w-44 rounded-[8px] border border-[#30313a] bg-[var(--background-secondary-color)] p-1 shadow-xl shadow-black/30">
                           <button
                             type="button"
                             onClick={() => handleRemoveFriend(friend.id)}
