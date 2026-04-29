@@ -4,17 +4,19 @@ import { FaSnapchat } from "react-icons/fa6";
 const Navbar = () => {
   return (
     <nav className='bg-white w-full h-[80px] flex justify-center '>
-        <div className='max-w-6xl w-full flex justify-between items-center '>
-            
-            <Link to={'/home'}>
-              <FaSnapchat className='w-9 h-9 ' />
-            </Link>
+      <div className=' px-6 w-full flex justify-between items-center '>
+          
+        <Link to={'/home'} className='flex items-center '>
+          <h1 className='text-2xl font-medium '> Bondly </h1>
+        </Link>
 
-            <Link to={'/register'}>
-                <button className='bg-gray-800 hover:bg-gray-900 text-white px-10 py-2 cursor-pointer '> Register </button>
-            </Link>
+        <Link to={'/register'}>
+          <button className="cursor-pointer transition-all bg-blue-500 text-white px-6 py-2 rounded-lg border-blue-600 border-b-[4px] hover:brightness-110 active:border-b-[2px] active:brightness-90 active:translate-y-[2px]">
+            Create an Account
+          </button>
+        </Link>
 
-        </div>
+      </div>
     </nav>
   )
 }

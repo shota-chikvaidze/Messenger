@@ -1,6 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Funnel+Sans:ital,wght@0,300..800;1,300..800&display=swap');
 @import "tailwindcss";
 
+@theme {
+  --breakpoint-xs: 480px;
+}
+
 :root {
     --primary-color: #4248a3;
     --primary-color-hover: #4e55b2;
@@ -13,6 +17,7 @@
     --outlet-color: #17181d;
 
     --text-color: #f2f2f2;
+    --button-color: #1b759c;
 
 }
 

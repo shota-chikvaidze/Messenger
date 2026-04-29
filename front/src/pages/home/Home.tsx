@@ -1,127 +1,27 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { LoginEndpoint, type LoginPayload } from '../../api/endpoints/auth'
-
-import { useAuth } from '../../store/useAuth'
-import { useMutation }  from '@tanstack/react-query'
-
-import { showSuccessToast, showErrorToast } from '../../utils/toast'
-
+import { Link } from 'react-router-dom'
 import textImg from '../../assets/images/texting-image.webp'
 
 export const Home = () => {
-
-  const [userPayload, setUserPayload] = useState<LoginPayload>({
-    email: '',
-    password: ''
-  })
-  const setAuth = useAuth((s) => s.setAuth)
-  const isInitialized = useAuth((state) => state.isInitialized)
-
-
-  const user = useAuth((s) => s.user)
-
-  const navigate = useNavigate()
-
-  const loginMutation = useMutation({
-    mutationKey: ['login-mutation'],
-    mutationFn: (payload: LoginPayload) => LoginEndpoint(payload),
-    onSuccess: (data) => {
-      setAuth(data.user, data.accessToken)
-      navigate('/profile')
-      showSuccessToast(data.message)
-    },
-    onError: (error: any) => {
-      showErrorToast(error?.response?.data?.message || 'Error Occurred')
-    }
-  })
-
-  const handleLoginMutation = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-
-    loginMutation.mutate(userPayload)
-  }
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUserPayload({...userPayload, [e.target.name]: e.target.value})
-  }
-
-  if (!isInitialized) return null 
-
   return (
-    <section className='w-full bg-white min-h-[85vh] flex justify-center items-center my-10 md:my-0 '>
-      <div className='flex flex-col lg:flex-row md:items-center md:gap-4 h-auto  '>
+    <section className="w-full px-6 pt-5 ">
+      <div className="w-full relative rounded-2xl overflow-hidden max-h-[80vh] ">
 
-        <div className='max-w-lg px-5 space-y-4 '>
-          <div>
-            
-            <h1 className='text-xl md:text-2xl text-gray-700 '> Log in to Snapchat </h1>
-            <p className='text-sm md:text-lg text-gray-600 '> Chat, Snap, and video call your friends. Watch Stories and Spotlight, all from your computer. </p>
+        <div className="absolute inset-0 bg-black/35 md:bg-black/15 rounded-3xl " />
+        <img src={textImg} alt='Girl texting on phone' className='w-full h-[480px] md:h-auto object-cover  ' />
 
-          </div>
+        <div className='absolute left-4 xs:left-18 md:left-36 top-1/2 -translate-y-1/2 space-y-4 max-w-[240px] xs:max-w-[350px] '>
+          <h1 className='text-4xl text-white xs:text-5xl md:text-7xl '> Message <br /> privatly </h1>
 
-          {user && (
-            <div>
-              <button onClick={() => navigate('/profile')} className='bg-[var(--primary-color)] py-2 w-full text-white cursor-pointer mt-3 hover:bg-[var(--primary-color-hover)] '>
-                Continue as {user.username}
-              </button>
-            </div>
-          )}
-
-          <form onSubmit={handleLoginMutation}>
-
-            {!user && (
-              <div className='space-y-1'>
-                <input 
-                  type='email' 
-                  name='email' 
-                  value={userPayload.email} 
-                  onChange={handleChange} 
-                  placeholder='Enter email'
-                  className='bg-gray-100 p-2 w-full rounded ' 
-                />
-
-                <input 
-                  type='password' 
-                  name='password'
-                  value={userPayload.password} 
-                  onChange={handleChange} 
-                  placeholder='Enter password' 
-                  className='bg-gray-100 p-2 w-full rounded ' 
-                />
-
-                <button type='submit' className='bg-[var(--primary-color)] py-2 w-full text-white cursor-pointer mt-3 hover:bg-[var(--primary-color-hover)] '>
-                  Login
-                </button>
-
-              </div>
-            )}
-
-            
-          </form>
-
-        </div>
-
-        <div>
-        
-          <div className='max-w-lg mt-5 md:mt-0 lg:max-w-2xl px-3 space-y-2 '>
-            <img 
-              src={textImg} 
-              width="1200"
-              height="800" 
-              alt='Texting image' 
-            />
-          </div>
-
+          <p className=' text-white leading-5 md:text-md '> Simple, reliable, private messaging and calling for free*, available all over the world. </p>
+          
+          <Link to={'/login'}>
+            <button className="cursor-pointer mt-8 transition-all bg-blue-500 text-white px-6 py-2 rounded-lg border-blue-600 border-b-[4px] hover:brightness-110 active:border-b-[2px] active:brightness-90 active:translate-y-[2px]">
+              Log in
+            </button>
+          </Link>
         </div>
 
       </div>
-    </section>
+    </section> 
   )
 }
-
-
-{/*
-
-
-  */}

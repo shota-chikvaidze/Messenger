@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Register } from './pages/register/Register'
+import { Login } from './pages/register/Login'
 import { Home } from './pages/home/Home'
 import { FindUsers } from './pages/findUsers/FindUsers'
 import { AllFriends } from './pages/findUsers/AllFriends'
@@ -29,6 +30,7 @@ function App() {
             
         <Route path='home' element={<Home />} />
         <Route path='register' element={<Register />} />
+        <Route path='login' element={<Login />} />
         <Route index element={<Home />} />
 
       </Route>

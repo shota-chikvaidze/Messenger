@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
 import { useMutation } from '@tanstack/react-query'
 import { useAuth } from '../../store/useAuth'
@@ -44,53 +45,60 @@ export const Register = () => {
 
       <form 
         onSubmit={handleRegisterMutation}
-        className="w-full max-w-sm bg-white px-6 py-12 rounded-2xl border border-gray-200"
+        className="w-full max-w-sm text-right bg-white rounded-2xl "
       >
       
-        {/* Title */}
         <h1 className="text-xl font-semibold text-gray-800 mb-6 text-center">
-          Create account
+          Create an account
         </h1>
 
-        {/* Inputs */}
         <div className="flex flex-col gap-4">
+            
+          <div className='text-left '>
+            <label className='text-sm '> Username </label>
+            <input
+              type="text"
+              name="username"
+              value={registerPaylod.username}
+              onChange={handleChange}
+              className="w-full px-4 py-2 rounded-xl border border-gray-200 bg-gray-100 focus:outline-none focus:border-gray-400 text-sm"
+            />
+          </div>
 
-          <input
-            type="text"
-            name="username"
-            value={registerPaylod.username}
-            onChange={handleChange}
-            placeholder="Username"
-            className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-gray-400 text-sm"
-          />
+          <div className='text-left '>
+            <label className='text-sm '> Email </label>
+            <input
+              type="email"
+              name="email"
+              value={registerPaylod.email}
+              onChange={handleChange}
+              className="w-full px-4 py-2 rounded-xl border border-gray-200 bg-gray-100 focus:outline-none focus:border-gray-400 text-sm"
+            />
+          </div>
 
-          <input
-            type="email"
-            name="email"
-            value={registerPaylod.email}
-            onChange={handleChange}
-            placeholder="Email"
-            className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-gray-400 text-sm"
-          />
-
-          <input
-            type="password"
-            name="password"
-            value={registerPaylod.password}
-            onChange={handleChange}
-            placeholder="Password"
-            className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-gray-400 text-sm"
-          />
+          <div className='text-left '>
+            <label className='text-sm '> Password </label>
+            <input
+              type="password"
+              name="password"
+              value={registerPaylod.password}
+              onChange={handleChange}
+              className="w-full px-4 py-2 rounded-xl border border-gray-200 bg-gray-100 focus:outline-none focus:border-gray-400 text-sm"
+            />
+          </div>
 
         </div>
 
-        {/* Button */}
         <button
           type="submit"
-          className="w-full mt-5 py-2 rounded-xl bg-black text-white text-sm font-medium hover:bg-gray-800 transition"
+          className="w-full my-5 py-2.5 rounded-xl bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 cursor-pointer transition"
         >
-          Register
+          Create Accound
         </button>
+
+        <span className='text-right '>
+          Already have an account? <Link className='text-blue-600 font-bold ' to={'/login'}> Login </Link>
+        </span>
 
       </form>
 
