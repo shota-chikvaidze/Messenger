@@ -8,7 +8,7 @@ interface UserPreview {
     isOnline?: boolean
     createdAt: string
 }
-interface ConversationType {
+export interface ConversationType {
     id: string
     participants: UserPreview[],
 
