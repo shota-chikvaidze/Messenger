@@ -27,8 +27,8 @@ const AddFriendPopup = ({ conversation, friendsData, isOpen, friendsLoading, onC
 
   const queryClient = useQueryClient()
   const id = conversation.id
-    const user = useAuth((store) => store.user)
-    const currentUser = user?.id
+  const user = useAuth((store) => store.user)
+  const currentUser = user?.id
   const [selectedFriendIds, setSelectedFriendIds] = useState<string[]>([])
   const [search, setSearch] = useState('')
 
@@ -38,47 +38,48 @@ const AddFriendPopup = ({ conversation, friendsData, isOpen, friendsLoading, onC
     (user) => !participantIds.includes(user.id)
   )
 
-    const addParticipantMutation = useMutation({
-      mutationKey: ['add-participant'],
-      mutationFn: ({ id, payload }: { id: string; payload: AddParticipantPayload }) => AddParticipantEndpoint(id, payload),
-      onSuccess: (data) => {
-        onClose()
-        setSelectedFriendIds([])
-        queryClient.invalidateQueries({ queryKey: ['get-conversation'] })
-        queryClient.invalidateQueries({ queryKey: ['get-conversations'] })
-        showSuccessToast(data.message || 'Participant added')
-      },
-      onError: (error: any) => {
-        showErrorToast(error?.response?.data?.message || 'Error Occurred')
+
+  const addParticipantMutation = useMutation({
+    mutationKey: ['add-participant'],
+    mutationFn: ({ id, payload }: { id: string; payload: AddParticipantPayload }) => AddParticipantEndpoint(id, payload),
+    onSuccess: (data) => {
+      onClose()
+      setSelectedFriendIds([])
+      queryClient.invalidateQueries({ queryKey: ['get-conversation'] })
+      queryClient.invalidateQueries({ queryKey: ['get-conversations'] })
+      showSuccessToast(data.message || 'Participant added')
+    },
+    onError: (error: any) => {
+      showErrorToast(error?.response?.data?.message || 'Error Occurred')
+    }
+  })
+
+
+  // create direct or group conversations handler
+  const handleAddParticipant = () => {
+    
+    if(!id){
+      return
+    }
+
+    if (!currentUser) {
+      showErrorToast('Please sign in again to start a conversation')
+      return
+    }
+
+    if (selectedFriendIds.length === 0) {
+      showErrorToast('Choose at least one friend')
+      return
+    }
+
+    addParticipantMutation.mutate({
+      id,
+      payload: {
+        userIds: selectedFriendIds
       }
     })
 
-
-      // create direct or group conversations handler
-      const handleAddParticipant = () => {
-        
-        if(!id){
-          return
-        }
-    
-        if (!currentUser) {
-          showErrorToast('Please sign in again to start a conversation')
-          return
-        }
-    
-        if (selectedFriendIds.length === 0) {
-          showErrorToast('Choose at least one friend')
-          return
-        }
-    
-        addParticipantMutation.mutate({
-          id,
-          payload: {
-            userIds: selectedFriendIds
-          }
-        })
-    
-      }
+  }
 
       
   const handleFriendCheckbox = (friendId: string, checked: boolean) => {

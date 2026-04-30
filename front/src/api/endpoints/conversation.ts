@@ -1,7 +1,7 @@
 import axios from "../axios";
 
 // get conversation type
-interface UserPreview {
+export interface UserPreview {
     id: string
     username: string
     avatar?: string
