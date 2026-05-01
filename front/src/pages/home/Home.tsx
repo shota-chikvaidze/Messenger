@@ -1,8 +1,14 @@
 import { Link } from 'react-router-dom'
 import textImg from '../../assets/images/texting-image.webp'
 import messagesImage from '../../assets/images/messages-image.png'
+import conversationImage from '../../assets/images/conversation.png'
+
+import { useAuth } from '../../store/useAuth'
 
 export const Home = () => {
+
+  const user = useAuth((store) => store.user)
+
   return (
     <>
 
@@ -17,22 +23,25 @@ export const Home = () => {
 
             <p className=' text-white leading-5 md:text-md '> Simple, reliable, private messaging and calling for free*, available all over the world. </p>
 
-            <Link to={'/login'}>
-              <button className="cursor-pointer mt-8 transition-all bg-blue-500 text-white px-6 py-2 rounded-lg border-blue-600 border-b-[4px] hover:brightness-110 active:border-b-[2px] active:brightness-90 active:translate-y-[2px]">
-                Log in
-              </button>
-            </Link>
+            {!user && (
+              <Link to={'/login'}>
+                <button className="cursor-pointer mt-8 transition-all bg-blue-500 text-white px-6 py-2 rounded-lg border-blue-600 border-b-[4px] hover:brightness-110 active:border-b-[2px] active:brightness-90 active:translate-y-[2px]">
+                  Log in
+                </button>
+              </Link>
+            )}
+            
           </div>
 
         </div>
       </section>
 
       <section className='w-full min-h-[500px] flex justify-center '>
-        <div className='w-full max-w-7xl flex justify-around items-center py-10 '>
+        <div className='w-full max-w-6xl flex justify-around items-center py-10 '>
 
           <div className='space-y-6 '>
             <h1 className='max-w-sm text-6xl '> Keep in touch with your groups </h1>
-            <p className='max-w-[400px] font-light leading-5 text-[18px] '> Whether it's planning an outing with friends or simply staying on top of your family chats, group conversations should feel effortless. </p>
+            <p className='max-w-[400px] font-light text-[18px] '> Whether it's planning an outing with friends or simply staying on top of your family chats, group conversations should feel effortless. </p>
           </div>
 
           <div>
@@ -41,6 +50,28 @@ export const Home = () => {
 
           </div>
 
+        </div>
+      </section>
+
+      <section className='w-full flex justify-center my-10'>
+        <div className='w-full max-w-6xl flex flex-col md:flex-row justify-around items-center gap-10 px-6 py-10'>
+          
+          <div>
+            <img
+              src={conversationImage}
+              className=' rounded-2xl object-cover'
+              alt='Messages image'
+            />
+          </div>
+      
+          <div className='space-y-6 min-w-lg '>
+            <h1 className='w-full md:w-1/2 text-3xl md:text-4xl lg:text-6xl font-light leading-14 text-center md:text-left '>
+              Say what  you feel
+            </h1>
+
+            <p className='w-sm text-lg '> Express yourself without words. Use stickers or share everyday moments on Status. </p>
+          </div>
+                
         </div>
       </section>
 
