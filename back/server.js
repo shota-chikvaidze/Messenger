@@ -11,10 +11,10 @@ const { Server } = require('socket.io')
 const app = express()
 const httpServer = http.createServer(app)
 const io = new Server(httpServer, {
-    cors: {
-        origin: process.env.CLIENT_URL || "http://localhost:5173",
-        credentials: true
-    }
+  cors: {
+      origin: process.env.CLIENT_URL || "http://localhost:5173",
+      credentials: true
+  }
 })
 
 app.use(express.json())
