@@ -1,4 +1,4 @@
-# Messenger API
+# Messenger App
 
 A real-time chat REST API built with Node.js, Express, MongoDB, and Socket.io.
 
