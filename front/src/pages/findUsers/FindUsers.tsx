@@ -39,13 +39,13 @@ export const FindUsers = () => {
   }
 
   return (
-    <section className='w-full h-screen overflow-y-auto p-10 flex '>
+    <section className='flex h-full w-full overflow-y-auto p-4 sm:p-6 lg:p-10'>
       <div className='   w-full flex flex-col items-start '>
 
 
           <div className="mb-6 w-full">
             <div className="pb-4 ">
-              <h3 className="text-3xl text-[var(--text-color)] font-bold "> Find friends </h3>
+              <h3 className="text-2xl font-bold text-[var(--text-color)] sm:text-3xl"> Find friends </h3>
               <p className="text-[var(--text-color)]/70 "> Discover people you may know </p>
             </div>
 
@@ -74,16 +74,16 @@ export const FindUsers = () => {
             <div className='w-full space-y-2 '>
               {users.map((user) => (
 
-                <div key={user.id} className='group px-2 py-3 w-full flex gap-4 justify-between items-center rounded-md hover:bg-[var(--background-hover)] '>
+                <div key={user.id} className='group flex w-full items-center justify-between gap-3 rounded-md px-2 py-3 hover:bg-[var(--background-hover)] sm:gap-4'>
 
-                  <div className='flex items-center rounded-full gap-3 '>
-                    <img src={user.avatar || UserPfp} alt='User profile picture' className='border-2 border-transparent group-hover:border-blue-700 w-[60px] h-[60px] rounded-full ' />
+                  <div className='flex min-w-0 items-center gap-3 rounded-full'>
+                    <img src={user.avatar || UserPfp} alt='User profile picture' className='h-12 w-12 rounded-full border-2 border-transparent group-hover:border-blue-700 sm:h-[60px] sm:w-[60px]' />
 
-                    <p className="text-[var(--text-color)] "> {user.username} </p>
+                    <p className="truncate text-[var(--text-color)]"> {user.username} </p>
                   </div>
                   
                   <button 
-                    className={`group-hover:flex items-center gap-1 text-sm font-semibold justify-center hidden rounded-xl px-3 py-2 ${user.hasSentRequest ? "cursor-not-allowed bg-gray-400 text-white  " : "bg-blue-600 text-white hover:bg-blue-500 cursor-pointer "} `}
+                    className={`flex shrink-0 items-center justify-center gap-1 rounded-[8px] px-3 py-2 text-sm font-semibold sm:hidden sm:group-hover:flex ${user.hasSentRequest ? "cursor-not-allowed bg-gray-400 text-white" : "bg-blue-600 text-white hover:bg-blue-500 cursor-pointer"} `}
                     type="button"
                     onClick={() => handleFriendRequests(user.id)}
                     disabled={user.hasSentRequest}

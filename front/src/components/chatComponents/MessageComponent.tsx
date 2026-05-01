@@ -347,12 +347,12 @@ const MessageComponent = ({ conversation, onInviteFriends, isFriend, onEditGroup
 
 
   return (
-        <div className='flex flex-col justify-between h-full flex-1 '>
-          <div className='overflow-y-auto '>
+        <div className='flex h-full min-w-0 flex-1 flex-col justify-between'>
+          <div className='min-h-0 overflow-y-auto'>
 
             {/* messages header */}
             {conversation?.isGroup ? (
-              <div className='px-5 py-6 space-y-2 border-b border-[var(--border-color)] '>
+              <div className='space-y-3 border-b border-[var(--border-color)] px-4 py-5 sm:px-5 sm:py-6'>
               
                 <div className='h-24 w-28 mb-4'>
                   {conversation.groupAvatar ? (
@@ -381,16 +381,16 @@ const MessageComponent = ({ conversation, onInviteFriends, isFriend, onEditGroup
                   )}
                 </div>
                 
-                <h1 className='text-3xl font-bold '> {conversation?.groupName} </h1>
-                <p> This is the beginning of your direct message history with <span className='font-bold '> {conversation?.groupName} </span> </p>
+                <h1 className='break-words text-2xl font-bold sm:text-3xl'> {conversation?.groupName} </h1>
+                <p className='text-sm text-white/80 sm:text-base'> This is the beginning of your direct message history with <span className='font-bold text-white'> {conversation?.groupName} </span> </p>
                 
-                <div className='flex gap-2 my-2'>
-                  <button onClick={() => onInviteFriends()} className='flex items-center gap-2 px-4 py-2 bg-[var(--primary-color)] hover:bg-[var(--primary-color-hover)] rounded-xl cursor-pointer '>
+                <div className='my-2 flex flex-wrap gap-2'>
+                  <button onClick={() => onInviteFriends()} className='flex min-h-10 items-center gap-2 rounded-[8px] bg-[var(--primary-color)] px-3 py-2 text-sm hover:bg-[var(--primary-color-hover)] cursor-pointer sm:px-4'>
                     <FaUserPlus />
                     Invite friends 
                   </button>
                 
-                  <button onClick={() => onEditGroup()} className='flex items-center gap-2 px-4 py-2 border border-[#363638] bg-[#242328] hover:bg-[#2e2c32] rounded-xl cursor-pointer '> 
+                  <button onClick={() => onEditGroup()} className='flex min-h-10 items-center gap-2 rounded-[8px] border border-[#363638] bg-[#242328] px-3 py-2 text-sm hover:bg-[#2e2c32] cursor-pointer sm:px-4'> 
                     <MdModeEdit />
                     Edit group 
                   </button>
@@ -402,7 +402,7 @@ const MessageComponent = ({ conversation, onInviteFriends, isFriend, onEditGroup
                 
               </div>
             ) : (
-              <div className='px-5 my-4 pb-7 space-y-2 border-b border-[var(--border-color))] '>
+              <div className='mx-0 my-4 space-y-2 border-b border-[var(--border-color)] px-4 pb-7 sm:px-5'>
 
                 <img 
                   src={otherUser?.avatar || UserPfp} 
@@ -410,12 +410,12 @@ const MessageComponent = ({ conversation, onInviteFriends, isFriend, onEditGroup
                   className='w-[75px] h-[75px] rounded-full ' 
                 />
 
-                <h1 className='text-3xl font-bold '> {otherUser?.username} </h1>
-                <p> This is the beginning of your direct message history with <span className='font-bold '> {otherUser?.username} </span> </p>
+                <h1 className='break-words text-2xl font-bold sm:text-3xl'> {otherUser?.username} </h1>
+                <p className='text-sm text-white/80 sm:text-base'> This is the beginning of your direct message history with <span className='font-bold text-white'> {otherUser?.username} </span> </p>
 
                 {!isFriend && otherUser && (
                   <div className='flex gap-2 my-2'>
-                    <button onClick={() => handleFriendRequests(otherUser?.id)} className='flex items-center gap-2 px-4 py-2 border border-[#363638] bg-[#242328] hover:bg-[#2e2c32] rounded-xl cursor-pointer '> 
+                    <button onClick={() => handleFriendRequests(otherUser?.id)} className='flex items-center gap-2 rounded-[8px] border border-[#363638] bg-[#242328] px-4 py-2 hover:bg-[#2e2c32] cursor-pointer'> 
                       <MdModeEdit />
                       Add friend
                     </button>
@@ -431,19 +431,19 @@ const MessageComponent = ({ conversation, onInviteFriends, isFriend, onEditGroup
             {/* Messages */}
             <div className='h-auto relative  '>
               {messages.map((message) => (
-                  <div key={message.id} className={`group relative flex gap-3 rounded-[8px] py-2 ${editingMessageId === message.id ? "bg-[var(--background-hover)]" : "hover:bg-[var(--background-hover)]"} transition  `}>
+                  <div key={message.id} className={`group relative flex gap-3 rounded-[8px] py-2 ${editingMessageId === message.id ? "bg-[var(--background-hover)]" : "hover:bg-[var(--background-hover)]"} transition`}>
 
-                    <div className={`flex items-start min-w-0 max-w-[90%] w-full gap-4 rounded-[8px] px-5 py-2 text-[#f2f3f5]  `} >
+                    <div className='flex w-full min-w-0 items-start gap-3 rounded-[8px] px-4 py-2 pr-12 text-[#f2f3f5] sm:gap-4 sm:px-5 sm:pr-16'>
                       <img
                         src={message.sender.avatar}
                         alt={`${message.sender.username} avatar`}
                         className='h-9 w-9 mt-1 shrink-0 rounded-full object-cover'
                       />
 
-                      <div className='w-full'>
+                      <div className='min-w-0 flex-1'>
                         {message.sender.username && (
-                          <div className={`flex items-center gap-2`}>
-                            <p className='mb-1 text-md font-semibold text-[var(--text-color)]'>
+                          <div className='flex min-w-0 flex-wrap items-center gap-x-2'>
+                            <p className='mb-1 truncate text-md font-semibold text-[var(--text-color)]'>
                               {message.sender.username}
                             </p>
                         
@@ -454,7 +454,7 @@ const MessageComponent = ({ conversation, onInviteFriends, isFriend, onEditGroup
                         )}
                         
                         <div>
-                          <div className='break-all font-light text-[15px] text-white/90 leading-5'>
+                          <div className='break-words font-light text-[15px] leading-5 text-white/90'>
 
                             {editingMessageId === message.id ? (
                               <div>
@@ -486,7 +486,7 @@ const MessageComponent = ({ conversation, onInviteFriends, isFriend, onEditGroup
                           </div>
 
                           {message.sender.id !== otherUser?.id && (
-                            <div className='absolute -top-3 right-10  '>
+                            <div className='absolute right-2 top-1 sm:-top-3 sm:right-10'>
 
                               <div
                                 className="relative"
@@ -504,7 +504,7 @@ const MessageComponent = ({ conversation, onInviteFriends, isFriend, onEditGroup
                                 
                                 {messageActionsPopup === message.id && (
                                   <div
-                                    className="absolute right-full -top-1 mr-2 w-58 rounded-lg bg-[#2b2d31] shadow-lg p-2 z-50"
+                                    className="absolute right-0 top-full z-50 mt-2 w-48 rounded-lg bg-[#2b2d31] p-2 shadow-lg sm:right-full sm:-top-1 sm:mr-2 sm:mt-0 sm:w-58"
                                     onClick={(e) => e.stopPropagation()}
                                   >
                                     <button 
@@ -557,13 +557,13 @@ const MessageComponent = ({ conversation, onInviteFriends, isFriend, onEditGroup
           </div>
 
           {/* input texting div */}
-          <div className='shrink-0 w-full border-t border-[#1f2026] bg-[var(--outlet-color)] px-3 py-2'>
+          <div className='w-full shrink-0 border-t border-[#1f2026] bg-[var(--outlet-color)] px-2 py-2 sm:px-3'>
             <form
               onSubmit={(e) => {
                 e.preventDefault()
                 handleSendMessage(sendMessagePayload.content, 'text')
               }}
-              className='flex min-h-[58px] items-center rounded-[8px] border border-[#30313a] bg-[#222327] px-5 shadow-sm shadow-black/20'
+              className='flex min-h-[54px] items-center rounded-[8px] border border-[#30313a] bg-[#222327] px-3 shadow-sm shadow-black/20 sm:min-h-[58px] sm:px-5'
             >
 
               <input 
@@ -610,7 +610,7 @@ const MessageComponent = ({ conversation, onInviteFriends, isFriend, onEditGroup
                 </button>
 
                 {emojiPopup && (
-                  <div className='absolute bottom-12 right-0 z-50 w-[278px] rounded-[8px] border border-[#30313a] bg-[#1f2027] p-3 shadow-2xl shadow-black/50'>
+                  <div className='absolute bottom-12 right-0 z-50 w-[240px] rounded-[8px] border border-[#30313a] bg-[#1f2027] p-3 shadow-2xl shadow-black/50 xs:w-[278px]'>
                     <div className='mb-2 text-xs font-semibold uppercase tracking-wide text-[#949ba4]'>
                       Emojis
                     </div>

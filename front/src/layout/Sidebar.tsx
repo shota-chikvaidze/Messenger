@@ -236,17 +236,19 @@ export const Sidebar = () => {
   }
 
   return (
-    <div className='relative'>
-      <aside className='min-w-[350px] w-auto h-screen'>
+    <div className='relative shrink-0'>
+      <aside className='h-dvh w-[84px] min-w-0 shrink-0 md:w-[300px] lg:w-[350px]'>
           <div className='relative flex h-full flex-col gap-4 overflow-hidden border border-[var(--border-color)] pb-20 pt-2'>
 
-            <div className='w-full border-b border-[var(--border-color)] pb-2 px-3'>
+            <div className='w-full border-b border-[var(--border-color)] px-2 pb-2 md:px-3'>
               <div className='relative h-10 border-[var(--border-color)]'>
                 <button 
                   onClick={() => setAddFriendPopup(true)} 
-                  className='absolute flex w-full cursor-pointer items-center justify-center rounded-lg bg-[var(--background-secondary-color)] px-4 py-2 text-sm text-[var(--text-color)] hover:bg-[var(--background-hover)]'
+                  className='absolute flex h-10 w-full cursor-pointer items-center justify-center rounded-lg bg-[var(--background-secondary-color)] px-2 py-2 text-sm text-[var(--text-color)] hover:bg-[var(--background-hover)] md:px-4'
+                  aria-label='Find or start conversation'
                 >
-                  Find or Start conversation
+                  <HiOutlineUserPlus className='text-[20px] md:hidden' />
+                  <span className='hidden md:inline'>Find or Start conversation</span>
                 </button>
               </div>
             </div>
@@ -255,23 +257,23 @@ export const Sidebar = () => {
 
               <div className='space-y-0.5 border-b border-[var(--border-color)] pb-3 px-3'>
                 <Link to={'/profile/friends'}>
-                  <div className='flex items-center py-2 px-3 rounded-lg w-full hover:bg-[#2c2b30] cursor-pointer '>
-                    <HiOutlineUsers className='text-[18px] text-white/80 ' />
-                    <h3 className='text-md text-white/80 ml-2 '> Friends </h3>
+                  <div className='flex items-center justify-center rounded-lg px-2 py-2 hover:bg-[#2c2b30] cursor-pointer md:justify-start md:px-3'>
+                    <HiOutlineUsers className='shrink-0 text-[20px] text-white/80 md:text-[18px]' />
+                    <h3 className='text-md ml-2 hidden text-white/80 md:block'> Friends </h3>
                   </div>
                 </Link>
 
                 <Link to={'/profile/find-friends'}>
-                  <div className='flex items-center py-2 px-3 rounded-lg w-full hover:bg-[#2c2b30] cursor-pointer'>
-                    <HiOutlineUserPlus className='text-[18px] text-white/80 ' />
-                    <h3 className='text-md text-white/80 ml-2 '> Add friends </h3>
+                  <div className='flex items-center justify-center rounded-lg px-2 py-2 hover:bg-[#2c2b30] cursor-pointer md:justify-start md:px-3'>
+                    <HiOutlineUserPlus className='shrink-0 text-[20px] text-white/80 md:text-[18px]' />
+                    <h3 className='text-md ml-2 hidden text-white/80 md:block'> Add friends </h3>
                   </div>
                 </Link>
 
                 <Link to={'/profile/friend-requests'}>
-                  <div className='flex items-center py-2 px-3 rounded-lg w-full hover:bg-[#2c2b30] cursor-pointer'>
-                    <HiOutlineUserGroup className='text-[18px] text-white/80 ' />
-                    <h3 className='text-md text-white/80 ml-2 '> Friend requests </h3>
+                  <div className='flex items-center justify-center rounded-lg px-2 py-2 hover:bg-[#2c2b30] cursor-pointer md:justify-start md:px-3'>
+                    <HiOutlineUserGroup className='shrink-0 text-[20px] text-white/80 md:text-[18px]' />
+                    <h3 className='text-md ml-2 hidden text-white/80 md:block'> Friend requests </h3>
                   </div>
                 </Link>
               </div>
@@ -294,18 +296,18 @@ export const Sidebar = () => {
                         />
                       </div>
 
-                      <h1 className="text-[var(--text-color)]/90 text-lg font-semibold">
+                      <h1 className="hidden text-[var(--text-color)]/90 text-lg font-semibold md:block">
                         No conversations found
                       </h1>
 
-                      <p className="text-gray-400 text-sm mt-1 max-w-[280px]">
+                      <p className="mt-1 hidden max-w-[280px] text-sm text-gray-400 md:block">
                         Create conversation and connect with people to start chatting.
                       </p>
                     </div>
                     ) : (
                       <div className='space-y-0.5 px-3'>
 
-                        <div className='mb-2 '>
+                        <div className='mb-2 hidden md:block'>
                           <p className='text-[var(--text-color)]/70 text-sm '> Direct messages </p>
                         </div>
 
@@ -337,7 +339,7 @@ export const Sidebar = () => {
                                 key={friend.id} 
                                 to={`/profile/chat/${friend.id}`}>
 
-                                <div className='flex items-center gap-4  py-2 w-full relative px-3 cursor-pointer hover:bg-[var(--background-hover)] rounded-lg '>
+                                <div className='relative flex w-full cursor-pointer items-center justify-center rounded-lg px-2 py-2 hover:bg-[var(--background-hover)] md:justify-start md:gap-4 md:px-3'>
 
                                   {friend.isGroup ? (
                                     friend.groupAvatar ? (
@@ -387,13 +389,13 @@ export const Sidebar = () => {
                                     </div>
                                   )}
 
-                                  <p className='text-[var(--text-color)] '> {friend.isGroup ? friend.groupName : avatar?.username} </p>
+                                  <p className='hidden truncate text-[var(--text-color)] md:block'> {friend.isGroup ? friend.groupName : avatar?.username} </p>
                                   
                                   {conversationActions === friend.id && (
                                     <div
                                       onClick={(e) => e.stopPropagation()}
                                       data-more-popup-root={friend.id}
-                                      className="absolute top-1/2 right-10 z-50 w-[188px] p-[8px] bg-[#2b2d31] rounded-md shadow-lg border border-[var(--border-color)] overflow-hidden"
+                                      className="absolute left-full top-1/2 z-50 ml-2 w-[188px] -translate-y-1/2 overflow-hidden rounded-md border border-[var(--border-color)] bg-[#2b2d31] p-[8px] shadow-lg md:left-auto md:right-10 md:ml-0 md:translate-y-0"
                                     >
                                       <div className="flex flex-col text-sm text-gray-200 space-y-1 ">
 
@@ -486,7 +488,7 @@ export const Sidebar = () => {
             </div>
 
 <div className='absolute bottom-2 left-2 right-2 flex h-[58px] items-center justify-between rounded-[8px] border border-[#30313a] bg-[#202127] shadow-lg shadow-black/20'>
-  <Link to='/profile/edit' className='flex items-center min-w-0 w-full hover:bg-white/5 gap-3 rounded-[8px] px-4 py-2 transition'>
+  <Link to='/profile/edit' className='flex min-w-0 items-center justify-center gap-3 rounded-[8px] px-2 py-2 transition hover:bg-white/5 md:w-full md:justify-start md:px-4'>
     <div className='relative shrink-0'>
       <img
         src={user?.avatar || UserPfp}
@@ -496,7 +498,7 @@ export const Sidebar = () => {
       <span className='absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-[3px] border-[#202127] bg-[#23a55a]' />
     </div>
 
-    <div className='min-w-0'>
+    <div className='hidden min-w-0 md:block'>
       <p className='truncate text-[15px] font-semibold leading-5 text-white'>{user?.username || 'User'}</p>
       <p className='text-[13px] leading-4 text-[#b5bac1]'>Online</p>
     </div>
@@ -504,7 +506,7 @@ export const Sidebar = () => {
 
   <button
     onClick={handleLogout}
-    className='mr-2 shrink-0 grid place-items-center w-8 h-8 rounded-[8px] text-[#b5bac1] hover:bg-white/5 hover:text-red-400 transition cursor-pointer'
+    className='mr-2 hidden h-8 w-8 shrink-0 cursor-pointer place-items-center rounded-[8px] text-[#b5bac1] transition hover:bg-white/5 hover:text-red-400 md:grid'
     title='Logout'
   >
     <LuLogOut className='text-[18px]' />

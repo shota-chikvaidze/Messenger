@@ -102,9 +102,9 @@ export const AllFriends = () => {
   }
 
   return (
-    <section className="h-screen w-full overflow-hidden text-[var(--text-color)]">
+    <section className="h-full w-full overflow-hidden text-[var(--text-color)]">
       <div className="flex h-full flex-col">
-        <header className="flex min-h-[62px] items-center gap-4 border-b border-[#25262d] px-7">
+        <header className="flex min-h-[62px] flex-wrap items-center gap-3 border-b border-[#25262d] px-4 sm:gap-4 sm:px-7">
           
           <div className="flex items-center gap-2 pr-4 text-[17px] font-semibold text-white">
             <BsPersonRaisedHand className="text-[20px] text-[#9da0a8]" />
@@ -120,7 +120,7 @@ export const AllFriends = () => {
 
         </header>
 
-        <div className="flex min-h-0 flex-1 flex-col px-7 py-3">
+        <div className="flex min-h-0 flex-1 flex-col px-4 py-3 sm:px-7">
           <label className="relative mb-7 block">
             <IoSearch className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[22px] text-[#d8d9de]" />
             <input
@@ -156,9 +156,9 @@ export const AllFriends = () => {
                 {friends.map((friend) => (
                   <div
                     key={friend.id}
-                    className="group flex min-h-[78px] w-full items-center justify-between gap-4 px-5 transition hover:bg-[#1d1e24]"
+                    className="group flex min-h-[78px] w-full items-center justify-between gap-3 px-2 transition hover:bg-[#1d1e24] sm:gap-4 sm:px-5"
                   >
-                    <div className="flex min-w-0 items-center gap-4">
+                    <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                       
                       <div className="relative shrink-0">
                         <img
@@ -171,7 +171,7 @@ export const AllFriends = () => {
 
                       </div>
 
-                      <div>
+                      <div className='min-w-0'>
                         <p className="truncate text-[18px] font-semibold leading-6 text-white">
                           {friend.username}
                         </p>
@@ -183,7 +183,7 @@ export const AllFriends = () => {
 
                     <div
                       data-more-popup-root={friend.id}
-                      className="flex shrink-0 relative items-center gap-2 pr-4 text-[#b9bbc2]"
+                      className="relative flex shrink-0 items-center gap-1 text-[#b9bbc2] sm:gap-2 sm:pr-4"
                     >
                       <button
                         type="button"

@@ -130,9 +130,9 @@ const Chat = () => {
 
   return (
     <EmojiProvider data={emojiData}>
-    <section className='relative flex h-screen min-h-0 w-full flex-col overflow-hidden bg-[var(--outlet-color)] text-[#dbdee1]'>
+    <section className='relative flex h-full min-h-0 w-full flex-col overflow-hidden bg-[var(--outlet-color)] text-[#dbdee1]'>
       
-      <header className='absolute shrink-0 w-full flex items-center gap-10 h-14 border-b border-[#1f2026] bg-[var(--outlet-color)] px-5 shadow-sm'>
+      <header className='absolute z-20 flex h-14 w-full shrink-0 items-center gap-4 border-b border-[#1f2026] bg-[var(--outlet-color)] px-4 shadow-sm sm:gap-10 sm:px-5'>
           
         <div className='flex items-center gap-3 '>
           <div className='grid h-8 w-8 place-items-center rounded-full text-[15px] font-semibold text-[#b5bac1]'>
@@ -199,7 +199,7 @@ const Chat = () => {
 
       </header>
         
-      <div className='flex h-full pt-14 '>
+      <div className='flex min-h-0 h-full pt-14'>
 
         <MessageComponent 
           conversation={conversation} 

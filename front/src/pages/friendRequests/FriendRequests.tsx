@@ -53,7 +53,7 @@ export const FriendRequests = () => {
 
 
   return (
-    <section className='h-screen overflow-y-auto p-10 w-full bg-[var(--outlet-color)] text-[#f2f3f5]'>
+    <section className='h-full w-full overflow-y-auto bg-[var(--outlet-color)] p-4 text-[#f2f3f5] sm:p-6 lg:p-10'>
       <div className='mx-auto w-full max-w-5xl'>
         
         <div className='border-b border-[#2a2b32] pb-5'>
@@ -85,7 +85,7 @@ export const FriendRequests = () => {
               {friends.map((friendReq) => (
                 <div
                   key={friendReq.id}
-                  className='flex min-h-[72px] items-center justify-between gap-4 rounded-[8px] px-3 py-3 transition hover:bg-[#22232a]'
+                  className='flex min-h-[72px] items-center justify-between gap-3 rounded-[8px] px-2 py-3 transition hover:bg-[#22232a] sm:gap-4 sm:px-3'
                 >
                   <div className='flex min-w-0 items-center gap-3'>
                     

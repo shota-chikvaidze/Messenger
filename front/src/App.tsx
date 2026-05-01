@@ -11,7 +11,8 @@ import Chat from './components/Chat/Chat'
 import { Toaster } from 'react-hot-toast'
 import { toastStyles } from './utils/toast'
 
-import { PrivateRoute } from './components/guards/AuthGuard'
+import { PrivateRoute } from './components/guards/PrivateRouteGuard'
+import { AuthGuard } from './components/guards/AuthGuard'
 import { useInitAuth } from './hooks/useInitAuth'
 import SidebarWrapper from './components/sidebarWrapper/SidebarWrapper'
 import NavbarWrapper from './components/sidebarWrapper/NavbarWrapper'
@@ -29,8 +30,12 @@ function App() {
       <Route element={<NavbarWrapper />} path='/'>
             
         <Route path='home' element={<Home />} />
-        <Route path='register' element={<Register />} />
-        <Route path='login' element={<Login />} />
+
+        <Route element={ <AuthGuard /> }>
+          <Route path='register' element={<Register />} />
+          <Route path='login' element={<Login />} />
+        </Route>
+
         <Route index element={<Home />} />
 
       </Route>

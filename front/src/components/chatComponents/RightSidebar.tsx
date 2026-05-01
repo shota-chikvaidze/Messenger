@@ -67,9 +67,9 @@ const RightSidebar = ({ conversation, isFriend }: RightSidebarProps) => {
 
 
   return (
-    <div className=' border-l border-[var(--border-color)]  '>
+    <div className='hidden shrink-0 border-l border-[var(--border-color)] xl:block'>
       {conversation.isGroup ? (
-        <div className='p-4 w-[280px] h-full '>
+        <div className='h-full w-[260px] p-4 2xl:w-[280px]'>
           <h2 className='text-gray-400 text-sm mb-2 '> Members: {conversation.participants.length} </h2>
     
           <div className='space-y-3 '>
@@ -93,7 +93,7 @@ const RightSidebar = ({ conversation, isFriend }: RightSidebarProps) => {
         
         </div>
       ) : (
-        <div className="w-[320px] h-full bg-[#1e1c20] rounded-xl text-white shadow-md">
+        <div className="h-full w-[280px] bg-[#1e1c20] text-white shadow-md 2xl:w-[320px]">
         
           <div className="relative w-full h-30 bg-black flex justify-end gap-3 p-3">
     
