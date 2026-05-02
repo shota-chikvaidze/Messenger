@@ -24,7 +24,7 @@ export const Home = () => {
 
             <p className=' text-white leading-5 md:text-md '> Simple, reliable, private messaging and calling for free*, available all over the world. </p>
 
-            {isInitialized && !user && (
+            {(!isInitialized || !user) && (
               <Link to={'/login'}>
                 <button className="cursor-pointer mt-8 transition-all bg-blue-500 text-white px-6 py-2 rounded-lg border-blue-600 border-b-[4px] hover:brightness-110 active:border-b-[2px] active:brightness-90 active:translate-y-[2px]">
                   Log in

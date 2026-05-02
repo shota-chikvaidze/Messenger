@@ -17,7 +17,7 @@ const Navbar = () => {
           <h1 className='text-2xl font-medium '> Bondly </h1>
         </Link>
 
-        {!isInitialized ? null : user ? (
+        {(!isInitialized || user) ? (
           <Link to={'/profile'}>
             <button className="cursor-pointer rounded-lg border-b-[4px] border-blue-600 bg-blue-500 px-3 py-2 text-sm text-white transition-all hover:brightness-110 active:translate-y-[2px] active:border-b-[2px] active:brightness-90 sm:px-6 sm:text-base">
               Dashboard
