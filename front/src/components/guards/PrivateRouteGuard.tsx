@@ -6,7 +6,7 @@ export const PrivateRoute = () => {
   const user = useAuth((state) => state.user)
   const isInitialized = useAuth((state) => state.isInitialized)
 
-  if(isInitialized === false) {
+  if(!isInitialized) {
     return (
       <div className="w-full h-screen flex items-center justify-center">
         <AiOutlineLoading3Quarters
