@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import textImg from '../../assets/images/texting-image.webp'
 import messagesImage from '../../assets/images/messages-image.png'
 import conversationImage from '../../assets/images/conversation.png'
+import { FadeImage } from '../../components/imageComponent/ImageComponent'
 
 import { useAuth } from '../../store/useAuth'
 
@@ -17,7 +18,12 @@ export const Home = () => {
         <div className="w-full relative rounded-2xl overflow-hidden max-h-[80vh] ">
 
           <div className="absolute inset-0 bg-black/35 md:bg-black/15 rounded-3xl " />
-          <img src={textImg} alt='Girl texting on phone' className='h-[440px] w-full object-cover sm:h-[480px] md:h-auto' />
+          <FadeImage 
+            src={textImg} 
+            alt='Girl texting on phone' 
+            wrapperClassName='h-[440px] sm:h-[480px] md:h-auto'
+            className='h-[440px] w-full object-cover sm:h-[480px] md:h-auto' 
+          />
 
           <div className='absolute left-4 top-1/2 max-w-[240px] -translate-y-1/2 space-y-4 xs:left-18 xs:max-w-[350px] md:left-36'>
             <h1 className='text-4xl text-white xs:text-5xl md:text-7xl'> Message <br /> privatly </h1>
@@ -47,7 +53,12 @@ export const Home = () => {
 
           <div className='w-full max-w-[370px] md:w-auto'>
 
-            <img src={messagesImage} loading='lazy' alt='Group messages' className='h-auto w-full rounded-xl object-cover md:w-[370px]' />
+            <FadeImage 
+              src={messagesImage} 
+              alt='Group messages'
+              wrapperClassName='w-full max-w-[370px] md:w-[370px] rounded-xl'
+              className='h-auto w-full rounded-xl object-cover md:w-[370px]'
+            />
 
           </div>
 
