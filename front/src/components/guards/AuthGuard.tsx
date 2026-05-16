@@ -5,7 +5,7 @@ export const AuthGuard = () => {
   const user = useAuth((state) => state.user)
   const isInitialized = useAuth((state) => state.isInitialized)
 
-  if (!isInitialized) return null 
+  if (!isInitialized) return null
 
   if(user) {
     return <Navigate to="/profile" replace /> 

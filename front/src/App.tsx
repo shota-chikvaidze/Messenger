@@ -14,12 +14,27 @@ import { toastStyles } from './utils/toast'
 import { PrivateRoute } from './components/guards/PrivateRouteGuard'
 import { AuthGuard } from './components/guards/AuthGuard'
 import { useInitAuth } from './hooks/useInitAuth'
+import { useAuth } from './store/useAuth'
 import SidebarWrapper from './components/sidebarWrapper/SidebarWrapper'
 import NavbarWrapper from './components/sidebarWrapper/NavbarWrapper'
 
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
+
 function App() {
   
+  const isInitialized = useAuth((store) => store.isInitialized)
   useInitAuth()
+
+  if(!isInitialized) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <AiOutlineLoading3Quarters
+          className="animate-spin text-4xl text-gray-500"
+        />
+      </div>
+    )
+  }
+
 
   return (
     <>
