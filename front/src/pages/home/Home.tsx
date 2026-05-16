@@ -17,7 +17,7 @@ export const Home = () => {
         <div className="w-full relative rounded-2xl overflow-hidden max-h-[80vh] ">
 
           <div className="absolute inset-0 bg-black/35 md:bg-black/15 rounded-3xl " />
-          <img src={textImg} loading='eager' alt='Girl texting on phone' className='h-[440px] w-full object-cover sm:h-[480px] md:h-auto' />
+          <img src={textImg} alt='Girl texting on phone' className='h-[440px] w-full object-cover sm:h-[480px] md:h-auto' />
 
           <div className='absolute left-4 top-1/2 max-w-[240px] -translate-y-1/2 space-y-4 xs:left-18 xs:max-w-[350px] md:left-36'>
             <h1 className='text-4xl text-white xs:text-5xl md:text-7xl'> Message <br /> privatly </h1>
@@ -40,9 +40,9 @@ export const Home = () => {
       <section className='flex min-h-[500px] w-full justify-center'>
         <div className='flex w-full max-w-6xl flex-col items-center justify-evenly gap-8 px-6 py-10 text-center md:flex-row md:text-left'>
 
-          <div className='space-y-6 '>
-            <h1 className='max-w-sm text-4xl xs:text-5xl md:text-6xl'> Keep in touch with your groups </h1>
-            <p className='max-w-[400px] font-light text-[18px] '> Whether it's planning an outing with friends or simply staying on top of your family chats, group conversations should feel effortless. </p>
+          <div className='space-y-4 max-w-[400px] '>
+            <h1 className='text-center text-3xl font-light leading-tight md:text-left md:text-4xl lg:text-6xl'>Keep in touch with your groups </h1>
+            <p className='font-light text-[18px] '> Whether it's planning an outing with friends or simply staying on top of your family chats, group conversations should feel effortless. </p>
           </div>
 
           <div className='w-full max-w-[370px] md:w-auto'>
@@ -66,8 +66,8 @@ export const Home = () => {
             />
           </div>
       
-          <div className='min-w-0 space-y-6 md:min-w-fit'>
-            <h1 className='w-full min-w-xs text-center text-3xl font-light leading-tight md:w-1/2 md:text-left md:text-4xl md:leading-14 lg:text-6xl'>
+          <div className='min-w-0 space-y-4 md:min-w-fit'>
+            <h1 className='w-full min-w-xs text-center text-3xl font-light leading-tight md:w-1/2 md:text-left md:text-4xl lg:text-6xl'>
               Say what  you feel
             </h1>
 
